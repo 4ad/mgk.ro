@@ -5,10 +5,13 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"os"
-	"go/build"
+	"os/exec"
+
+//	"go/build"
 )
 
 var (
@@ -16,6 +19,8 @@ var (
 	png  = flag.String("png", "", "write graph to png file")
 	tags = flag.String("tags", "", "additional built tags to consider")
 )
+
+var packages []string
 
 var usageString = `usage: godep [options] [packages]
 
@@ -49,29 +54,39 @@ func fatalf(format string, args ...interface{}) {
 
 func fatal(args ...interface{}) { fatalf("%v", args...) }
 
+// golist runs 'go list args' and assigns packages the result.
+func golist(args ...string) {
+	args = append([]string{"list"}, args...)
+	cmd := exec.Command("go", args...)
+	cmd.Stderr = os.Stderr
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		fatal(err)
+	}
+	r := bufio.NewReader(stdout)
+	
+	if err = cmd.Start(); err != nil {
+		fatal(err)
+	}
+	for {
+		pkg, _, err := r.ReadLine()
+		if err != nil {
+			break
+		}
+		packages = append(packages, string(pkg))
+	}
+	if err = cmd.Wait(); err != nil {
+		os.Exit(1)
+	}
+	return
+}
+
 func main() {
 	flag.Usage = usage
 	flag.Parse()
-	
-	args := flag.Args()
-	for _, v := range args {
-		switch {
-		case v == "all":
-			allDirs := build.Default.SrcDirs()
-			args = append(args, allDirs...)
-			continue
-		case v == "std":
-			ctxt := build.Default
-			ctxt.GOPATH = ""
-			stdDirs := ctxt.SrcDirs()[0]
-			args = append(args, stdDirs)
-			continue
-		}
-		bfs(v)
-	}
-}
 
-// bfs does a breadth-first traversal of the package tree rooted at dir.
-func bfs(dir string) {
-	
+	golist(flag.Args()...)
+	for _, v := range packages {
+		fmt.Println(v)
+	}
 }
