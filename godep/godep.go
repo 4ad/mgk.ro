@@ -8,6 +8,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"go/build"
 )
 
 var (
@@ -51,4 +52,26 @@ func fatal(args ...interface{}) { fatalf("%v", args...) }
 func main() {
 	flag.Usage = usage
 	flag.Parse()
+	
+	args := flag.Args()
+	for _, v := range args {
+		switch {
+		case v == "all":
+			allDirs := build.Default.SrcDirs()
+			args = append(args, allDirs...)
+			continue
+		case v == "std":
+			ctxt := build.Default
+			ctxt.GOPATH = ""
+			stdDirs := ctxt.SrcDirs()[0]
+			args = append(args, stdDirs)
+			continue
+		}
+		bfs(v)
+	}
+}
+
+// bfs does a breadth-first traversal of the package tree rooted at dir.
+func bfs(dir string) {
+	
 }
