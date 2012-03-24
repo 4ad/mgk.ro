@@ -17,7 +17,7 @@ import (
 var (
 	flagP    = flag.Bool("p", false, "print individial imports for each package")
 	flagDot  = flag.Bool("dot", false, "print DOT language (GraphWiz)")
-	flagPng  = flag.String("png", "", "write graph to flagPng file")
+	flagPng  = flag.String("png", "", "write graph to png file")
 	flagTags = flag.String("tags", "", "additional build tags to consider")
 )
 
