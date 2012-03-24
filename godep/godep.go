@@ -27,6 +27,14 @@ var (
 	pkgs    []string                // user supplied.
 )
 
+type pkgStatus struct {
+	visited bool
+	printed bool
+}
+
+func (st pkgStatus) SetVisited() pkgStatus { st.visited = true; return st }
+func (st pkgStatus) SetPrinted() pkgStatus { st.printed = true; return st }
+
 var usageString = `usage: godep [options] [packages]
 
 Godep prints dependency information for packages named by the
@@ -52,16 +60,16 @@ func main() {
 	for _, v := range pkgs {
 		dfs(v)
 	}
-	donePkgs := make(map[string]bool)
+	visitedPkgs := make(map[string]pkgStatus)
 	for _, v := range pkgs {
 		if *flagP {
 			// redeclared because it's not shared between iterations.
-			donePkgs := make(map[string]bool)
+			visitedPkgs := make(map[string]pkgStatus)
 			fmt.Printf("%s ", v)
-			printPkgDeps(v, donePkgs)
+			printPkgDeps(v, visitedPkgs)
 			fmt.Printf("\n")
 		} else {
-			printDepTree(v, donePkgs)
+			printDepTree(v, visitedPkgs)
 		}
 	}
 }
@@ -117,29 +125,32 @@ func dfs(path string) {
 
 // printPkgDeps prints on a single line all packages imported by the
 // named package.
-func printPkgDeps(path string, donePkgs map[string]bool) {
-	_, done := donePkgs[path]
-	if done {
+func printPkgDeps(path string, visitedPkgs map[string]pkgStatus) {
+	pkgStat, done := visitedPkgs[path]
+	if done && pkgStat.visited {
 		return
 	}
-	donePkgs[path] = true
+	visitedPkgs[path] = pkgStat.SetVisited()
 
 	deps := pkgdep[path]
 	for _, v := range deps {
-		fmt.Printf("%s ", v)
+		if pkgStat := visitedPkgs[v]; pkgStat.printed == false {
+			fmt.Printf("%s ", v)
+			visitedPkgs[v] = pkgStat.SetPrinted()
+		}
 	}
 	for _, v := range deps {
-		printPkgDeps(v, donePkgs)
+		printPkgDeps(v, visitedPkgs)
 	}
 }
 
 // printDepTree prints the dependency tree one level per line.
-func printDepTree(path string, donePkgs map[string]bool) {
-	_, done := donePkgs[path]
-	if done {
+func printDepTree(path string, visitedPkgs map[string]pkgStatus) {
+	pkgStat, done := visitedPkgs[path]
+	if done && pkgStat.visited {
 		return
 	}
-	donePkgs[path] = true
+	visitedPkgs[path] = pkgStat.SetVisited()
 
 	deps := pkgdep[path]
 	fmt.Printf("%s ", path)
@@ -148,7 +159,7 @@ func printDepTree(path string, donePkgs map[string]bool) {
 	}
 	fmt.Printf("\n")
 	for _, v := range deps {
-		printDepTree(v, donePkgs)
+		printDepTree(v, visitedPkgs)
 	}
 }
 
