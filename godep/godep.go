@@ -11,18 +11,20 @@ import (
 	"go/build"
 	"os"
 	"os/exec"
+	"path/filepath"
 )
 
 var (
-	perPkg = flag.Bool("p", false, "print individual imports for each package, not global dependency graph")
-	dot    = flag.Bool("dot", false, "print DOT language (GraphWiz)")
-	png    = flag.String("png", "", "write graph to png file")
-	tags   = flag.String("tags", "", "additional build tags to consider")
+	flagP    = flag.Bool("p", false, "print individual imports for each package, not global dependency graph")
+	flagDot  = flag.Bool("flagDot", false, "print DOT language (GraphWiz)")
+	flagPng  = flag.String("flagPng", "", "write graph to flagPng file")
+	flagTags = flag.String("tags", "", "additional build tags to consider")
 )
 
 var (
-	pkgdep = map[string][]string{} // pkg -> pkg dependencies.
-	pkgs   []string                // user supplied.
+	bldCtxt = build.Default
+	pkgdep  = map[string][]string{} // pkg -> pkg dependencies.
+	pkgs    []string                // user supplied.
 )
 
 var usageString = `usage: godep [options] [packages]
@@ -53,7 +55,7 @@ func main() {
 	}
 	donePkgs := make(map[string]bool)
 	for _, v := range pkgs {
-		if *perPkg {
+		if *flagP {
 			// redeclared because it's not shared between iterations.
 			donePkgs := make(map[string]bool)
 			fmt.Printf("%s ", v)
@@ -96,13 +98,17 @@ func golist(args ...string) {
 // path is the current node. It records the dependency information to
 // pkgdep.
 func dfs(path string) {
-	pkg, err := build.Import(path, srcDir(path), 0)
+	pkg, err := bldCtxt.ImportDir(srcDir(path), 0)
 	if err != nil {
 		fatal(err)
 	}
 	deps := pkg.Imports
 	pkgdep[path] = deps
 	for _, v := range deps {
+		// C is a pseudopackage.
+		if v == "C" {
+			continue
+		}
 		_, ok := pkgdep[v]
 		if !ok {
 			dfs(v)
@@ -150,11 +156,19 @@ func printDepTree(path string, donePkgs map[string]bool) {
 // srcDir returns the directory where the package with the named
 // import path resides. It is required for resolving local imports (ugh).
 func srcDir(path string) string {
-	pkg, err := build.Import(path, "", build.FindOnly)
-	if err != nil {
-		fatal(err)
+	// Test if it's a command in $GOROOT/src.
+	cmdpath := filepath.Join(bldCtxt.GOROOT, "src", path)
+	// normally we'd use build.ImportDir, but it has a bug.
+	fi, err := os.Stat(cmdpath)
+	if err != nil || !fi.IsDir() {
+		// A package, not a command.
+		pkg, err := bldCtxt.Import(path, "", build.FindOnly)
+		if err != nil {
+			fatal(err)
+		}
+		return pkg.Dir
 	}
-	return pkg.Dir
+	return cmdpath
 }
 
 func logf(format string, args ...interface{}) {
