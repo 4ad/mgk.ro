@@ -8,19 +8,21 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
+	"go/build"
 	"os"
 	"os/exec"
-
-//	"go/build"
 )
 
 var (
 	dot  = flag.Bool("dot", false, "print DOT language (GraphWiz)")
 	png  = flag.String("png", "", "write graph to png file")
-	tags = flag.String("tags", "", "additional built tags to consider")
+	tags = flag.String("tags", "", "additional build tags to consider")
 )
 
-var packages []string
+var (
+	pkgdep = map[string][]string{} // pkg -> pkg dependencies.
+	pkgs   []string                // user supplied.
+)
 
 var usageString = `usage: godep [options] [packages]
 
@@ -40,6 +42,93 @@ func usage() {
 	os.Exit(1)
 }
 
+func main() {
+	flag.Usage = usage
+	flag.Parse()
+
+	golist(flag.Args()...) // finds packages to work with.
+	for _, v := range pkgs {
+		dfs(v)
+	}
+	donePkgs := make(map[string] bool)
+	for _, v := range pkgs {
+		printPkgDep(v, donePkgs)
+	}
+}
+
+// golist runs 'go list args' and assigns the result to pkgs.
+func golist(args ...string) {
+	args = append([]string{"list"}, args...)
+	cmd := exec.Command("go", args...)
+	cmd.Stderr = os.Stderr
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		fatal(err)
+	}
+	r := bufio.NewReader(stdout)
+
+	if err = cmd.Start(); err != nil {
+		fatal(err)
+	}
+	for {
+		pkg, _, err := r.ReadLine()
+		if err != nil {
+			break
+		}
+		pkgs = append(pkgs, string(pkg))
+	}
+	if err = cmd.Wait(); err != nil {
+		os.Exit(1)
+	}
+	return
+}
+
+// dfs does a depth-first traversal of the package dependency graph.
+// path is the current node. It records the dependency information to
+// pkgdep.
+func dfs(path string) {
+	pkg, err := build.Import(path, srcDir(path), 0)
+	if err != nil {
+		fatal(err)
+	}
+	deps := pkg.Imports
+	pkgdep[path] = deps
+	for _, v := range deps {
+		_, ok := pkgdep[v]
+		if !ok {
+			dfs(v)
+		}
+	}
+}
+
+func printPkgDep(path string, donePkgs map[string] bool) {
+	_, done := donePkgs[path]
+	if done {
+		return
+	}
+	donePkgs[path] = true
+	
+	deps := pkgdep[path]
+	fmt.Printf("%s ", path)
+	for _, v := range deps {
+		fmt.Printf("%s ", v)
+	}
+	fmt.Printf("\n")
+	for _, v := range deps {
+		printPkgDep(v, donePkgs)
+	}
+}
+
+// srcDir returns the directory where the package with the named
+// import path resides. It is required for resolving local imports (ugh).
+func srcDir(path string) string {
+	pkg, err := build.Import(path, "", build.FindOnly)
+	if err != nil {
+		fatal(err)
+	}
+	return pkg.Dir
+}
+
 func logf(format string, args ...interface{}) {
 	fmt.Fprint(os.Stderr, "godep: ")
 	fmt.Fprintf(os.Stderr, format+"\n", args...)
@@ -53,40 +142,3 @@ func fatalf(format string, args ...interface{}) {
 }
 
 func fatal(args ...interface{}) { fatalf("%v", args...) }
-
-// golist runs 'go list args' and assigns packages the result.
-func golist(args ...string) {
-	args = append([]string{"list"}, args...)
-	cmd := exec.Command("go", args...)
-	cmd.Stderr = os.Stderr
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		fatal(err)
-	}
-	r := bufio.NewReader(stdout)
-	
-	if err = cmd.Start(); err != nil {
-		fatal(err)
-	}
-	for {
-		pkg, _, err := r.ReadLine()
-		if err != nil {
-			break
-		}
-		packages = append(packages, string(pkg))
-	}
-	if err = cmd.Wait(); err != nil {
-		os.Exit(1)
-	}
-	return
-}
-
-func main() {
-	flag.Usage = usage
-	flag.Parse()
-
-	golist(flag.Args()...)
-	for _, v := range packages {
-		fmt.Println(v)
-	}
-}
