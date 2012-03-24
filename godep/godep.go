@@ -14,9 +14,10 @@ import (
 )
 
 var (
-	dot  = flag.Bool("dot", false, "print DOT language (GraphWiz)")
-	png  = flag.String("png", "", "write graph to png file")
-	tags = flag.String("tags", "", "additional build tags to consider")
+	perPkg = flag.Bool("p", false, "print individual imports for each package, not global dependency graph")
+	dot    = flag.Bool("dot", false, "print DOT language (GraphWiz)")
+	png    = flag.String("png", "", "write graph to png file")
+	tags   = flag.String("tags", "", "additional build tags to consider")
 )
 
 var (
@@ -50,9 +51,17 @@ func main() {
 	for _, v := range pkgs {
 		dfs(v)
 	}
-	donePkgs := make(map[string] bool)
+	donePkgs := make(map[string]bool)
 	for _, v := range pkgs {
-		printPkgDep(v, donePkgs)
+		if *perPkg {
+			// redeclared because it's not shared between iterations.
+			donePkgs := make(map[string]bool)
+			fmt.Printf("%s ", v)
+			printPkgDeps(v, donePkgs)
+			fmt.Printf("\n")
+		} else {
+			printDepTree(v, donePkgs)
+		}
 	}
 }
 
@@ -101,13 +110,32 @@ func dfs(path string) {
 	}
 }
 
-func printPkgDep(path string, donePkgs map[string] bool) {
+// printPkgDeps prints on a single line all packages imported by the
+// named package.
+func printPkgDeps(path string, donePkgs map[string]bool) {
 	_, done := donePkgs[path]
 	if done {
 		return
 	}
 	donePkgs[path] = true
-	
+
+	deps := pkgdep[path]
+	for _, v := range deps {
+		fmt.Printf("%s ", v)
+	}
+	for _, v := range deps {
+		printPkgDeps(v, donePkgs)
+	}
+}
+
+// printDepTree prints the dependency tree one level per line.
+func printDepTree(path string, donePkgs map[string]bool) {
+	_, done := donePkgs[path]
+	if done {
+		return
+	}
+	donePkgs[path] = true
+
 	deps := pkgdep[path]
 	fmt.Printf("%s ", path)
 	for _, v := range deps {
@@ -115,7 +143,7 @@ func printPkgDep(path string, donePkgs map[string] bool) {
 	}
 	fmt.Printf("\n")
 	for _, v := range deps {
-		printPkgDep(v, donePkgs)
+		printDepTree(v, donePkgs)
 	}
 }
 
