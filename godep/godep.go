@@ -15,9 +15,9 @@ import (
 )
 
 var (
-	flagP    = flag.Bool("p", false, "print individual imports for each package, not global dependency graph")
-	flagDot  = flag.Bool("flagDot", false, "print DOT language (GraphWiz)")
-	flagPng  = flag.String("flagPng", "", "write graph to flagPng file")
+	flagP    = flag.Bool("p", false, "print individial imports for each package")
+	flagDot  = flag.Bool("dot", false, "print DOT language (GraphWiz)")
+	flagPng  = flag.String("png", "", "write graph to flagPng file")
 	flagTags = flag.String("tags", "", "additional build tags to consider")
 )
 
@@ -29,11 +29,10 @@ var (
 
 var usageString = `usage: godep [options] [packages]
 
-Godep prints dependency information for packages named by the import
-paths. If no packages are specified, the current directory is assumed
-to be the package. The special import path "all" expands to all package
-directories found in all the GOPATH trees. The special import path "std"
-is like all but expands to just the packages in the standard Go library.
+Godep prints dependency information for packages named by the
+import paths. By default it prints a dependency graph that spans
+all packages. The -p flag makes it print the individial dependency
+information for each named package.
 
 For more about specifying packages, see 'go help packages'.
 
