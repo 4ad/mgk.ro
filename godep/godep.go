@@ -12,6 +12,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 )
 
 var (
@@ -56,19 +57,24 @@ func main() {
 	flag.Usage = usage
 	flag.Parse()
 
+	bldCtxt.BuildTags = strings.Split(*flagTags, " ")
 	golist(flag.Args()...) // finds packages to work with.
 	for _, v := range pkgs {
 		dfs(v)
 	}
 	visitedPkgs := make(map[string]pkgStatus)
 	for _, v := range pkgs {
-		if *flagP {
+		switch {
+		case *flagDot:
+		case *flagPng != "":
+			fatal("-png flag not implemented")
+		case *flagP:
 			// redeclared because it's not shared between iterations.
 			visitedPkgs := make(map[string]pkgStatus)
 			fmt.Printf("%s ", v)
 			printPkgDeps(v, visitedPkgs)
 			fmt.Printf("\n")
-		} else {
+		default:
 			printDepTree(v, visitedPkgs)
 		}
 	}
