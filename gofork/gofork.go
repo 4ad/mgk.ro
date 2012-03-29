@@ -10,9 +10,10 @@ Usage:
 
 In its first invocation gofork creates a fork of the package tree rooted
 at the old import path. Packages that wish to use the fork should use
-the new import path. gofork potentially updates the import paths of the
-packages in the tree in order to reference the forked packages. Forked
-packages will be installed where go get would install packages.
+the new import path. gofork potentially updates the import paths of
+the packages in the specified tree in order to reference the forked
+packages. Forked packages will be installed where go get would install
+packages.
 
 In its second form gofork will update the named packages to change old
 import paths to the new fork. It works recursively, if you forked:
@@ -25,6 +26,13 @@ and you wish to use myhttp and myhttp/httputil in godoc, it suffices to:
 
 net/http will be changed to myhttp and net/http/httputil will be changed
 to myhttp/httputil.
+
+Gofork is useful in conjunction with godep, if you forked flag to myflag
+and you wish to update all commands to use myflag you can do:
+
+	gofork -r 'flag=myflag' `godep -p all | grep flag | cut -d ' ' -f 1`
+or
+	godep -p all | grep flag | cut -d ' ' -f 1 | xargs gofork -r 'flag=myflag'
 */
 package main
 
