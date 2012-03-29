@@ -1,7 +1,23 @@
 // Permission to use, copy, modify, and/or distribute this software for
 // any purpose is hereby granted, provided this notice appear in all copies.
 
-// godep returns package dependency information.
+/*
+Godep prints dependency information for packages named by the
+import paths.
+
+Usage:
+	godep [options] [packages]
+
+By default it prints a dependency graph that spans all packages.
+
+The options are:
+	-p
+		print individial imports for each named package
+	-tags
+		additional build tags to consider
+
+For more about specifying packages, see 'go help packages'.
+*/
 package main
 
 import (
@@ -37,14 +53,6 @@ func (st pkgStatus) SetVisited() pkgStatus { st.visited = true; return st }
 func (st pkgStatus) SetPrinted() pkgStatus { st.printed = true; return st }
 
 var usageString = `usage: godep [options] [packages]
-
-Godep prints dependency information for packages named by the
-import paths. By default it prints a dependency graph that spans
-all packages. The -p flag makes it print the individial dependency
-information for each named package.
-
-For more about specifying packages, see 'go help packages'.
-
 Options:`
 
 func usage() {
