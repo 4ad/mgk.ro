@@ -2,8 +2,8 @@
 // any purpose is hereby granted, provided this notice appear in all copies.
 
 /*
-Godep prints dependency information for packages named by the
-import paths.
+Godep prints dependency information for packages named by the import
+paths.
 
 Usage:
 	godep [options] [packages]
@@ -14,7 +14,7 @@ The options are:
 	-p
 		print individial imports for each named package
 	-tags
-		additional build tags to consider
+		additional build tags to consider satisfied
 
 For more about specifying packages, see 'go help packages'.
 */
@@ -53,10 +53,11 @@ func (st pkgStatus) SetVisited() pkgStatus { st.visited = true; return st }
 func (st pkgStatus) SetPrinted() pkgStatus { st.printed = true; return st }
 
 var usageString = `usage: godep [options] [packages]
-Options:`
+Options:
+`
 
 func usage() {
-	fmt.Fprintf(os.Stderr, "%s\n", usageString)
+	fmt.Fprint(os.Stderr, usageString)
 	flag.PrintDefaults()
 	os.Exit(1)
 }

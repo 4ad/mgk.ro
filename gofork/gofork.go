@@ -5,29 +5,26 @@
 Gofork is a tool to help manage forked packages.
 
 Usage:
-    gofork old new
-    gofork -r 'old=new' [packages ...]
+	gofork old new
+	gofork -r 'old=new' [packages ...]
 
-In its first invocation gofork creates a fork of the package tree
-rooted at the old import path. Packages that wish to use the fork
-should use the new import path. gofork potentially updates the
-import paths of the packages in the tree in order to reference
-the forked packages. Forked packages will be installed where go
-get would install packages.
+In its first invocation gofork creates a fork of the package tree rooted
+at the old import path. Packages that wish to use the fork should use
+the new import path. gofork potentially updates the import paths of the
+packages in the tree in order to reference the forked packages. Forked
+packages will be installed where go get would install packages.
 
-In its second form gofork will update the named packages to
-change old import paths to the new fork. It works recursively,
-if you forked:
+In its second form gofork will update the named packages to change old
+import paths to the new fork. It works recursively, if you forked:
 
-    gofork net/http myhttp
+	gofork net/http myhttp
 
-and you wish to use myhttp and myhttp/httputil in godoc, it
-suffices to:
+and you wish to use myhttp and myhttp/httputil in godoc, it suffices to:
 
-    gofork -r 'net/http=myhttp' cmd/godoc
+	gofork -r 'net/http=myhttp' cmd/godoc
 
-net/http will be changed to myhttp and net/http/httputil will be
-changed to myhttp/httputil.
+net/http will be changed to myhttp and net/http/httputil will be changed
+to myhttp/httputil.
 */
 package main
 
@@ -46,10 +43,8 @@ var (
 var usageString = `usage:
     gofork old new
     gofork -r 'old=new' [packages ...]
-
 Options:
 `
-
 
 func usage() {
 	fmt.Fprint(os.Stderr, usageString)
@@ -60,7 +55,7 @@ func usage() {
 func main() {
 	flag.Usage = usage
 	flag.Parse()
-	if flag.NArg() != 2 {
+	if *flagR == "" && flag.NArg() != 2 {
 		usage()
 	}
 }
