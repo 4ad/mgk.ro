@@ -50,7 +50,7 @@ func main() {
 			fatal(err)
 		}
 		for _, ast := range asts {
-			BUG(aram): exclude _test packages.
+			// BUG(aram): exclude _test packages.
 			recordDefs(ast, fset)
 		}
 	}
@@ -64,13 +64,12 @@ func isGoFile(f os.FileInfo) bool {
 
 // recordDefs traverses the ast and records the type definitions.
 func recordDefs(pkg *ast.Package, fset *token.FileSet) {
-	for _, f := range pkg.Files {
-		for _, v := range f.Decls {
-			if decl, ok := v.(*ast.GenDecl); ok {
-				if decl.Tok == token.TYPE {
-					printer.Fprint(os.Stdout, fset, decl)
-					fmt.Printf("\n\n")
-				}
+	f := ast.MergePackageFiles(pkg, ast.FilterImportDuplicates|ast.FilterFuncDuplicates)
+	for _, v := range f.Decls {
+		if decl, ok := v.(*ast.GenDecl); ok {
+			if decl.Tok == token.TYPE {
+				printer.Fprint(os.Stdout, fset, decl)
+				fmt.Printf("\n\n")
 			}
 		}
 	}
