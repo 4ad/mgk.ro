@@ -66,13 +66,12 @@ func isGoFile(f os.FileInfo) bool {
 // recordDefs traverses the ast and records the type definitions found.
 func recordDefs(f *ast.File, fset *token.FileSet) {
 	for _, v := range f.Decls {
-		if decl, ok := v.(*ast.GenDecl); ok {
-			if decl.Tok == token.TYPE {
-				pos := fset.Position(decl.Pos())
-				fmt.Printf("//line %v:%v\n", pos.Filename, pos.Line)
-				printer.Fprint(os.Stdout, fset, decl)
-				fmt.Printf("\n\n")
-			}
+		decl, ok := v.(*ast.GenDecl)
+		if ok && decl.Tok == token.TYPE {
+			pos := fset.Position(decl.Pos())
+			fmt.Printf("//line %v:%v\n", pos.Filename, pos.Line)
+			printer.Fprint(os.Stdout, fset, decl)
+			fmt.Printf("\n\n")
 		}
 	}
 }
