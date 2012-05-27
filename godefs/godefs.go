@@ -6,7 +6,7 @@ Godefs prints a top-down description of the top-level type definitions
 for packages named by the import paths.
 
 Usage:
-	godefs [-tags=""] [packages]
+	godefs [packages]
 
 By default it prints type definitions for the package in the current
 directory. For more about specifying packages, see 'go help packages'.\
@@ -24,12 +24,12 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 )
 
 var (
 	bldCtxt = build.Default
-	pkgdep  = map[string][]string{} // pkg -> pkg dependencies.
-	pkgs    []string                // user supplied.
+	pkgs    []string // user supplied.
 )
 
 func usage() {
@@ -45,12 +45,18 @@ func main() {
 	for _, v := range pkgs {
 		dir := srcDir(v)
 		fset := token.NewFileSet()
-		ast, err := parser.ParseDir(fset, dir, nil, parser.ParseComments)
+		ast, err := parser.ParseDir(fset, dir, isGoFile, parser.ParseComments)
 		if err != nil {
 			fatal(err)
 		}
 		recordDefs(ast[filepath.Base(v)]) // avoids _test packages.
 	}
+}
+
+func isGoFile(f os.FileInfo) bool {
+	// ignore non-Go files
+	name := f.Name()
+	return !f.IsDir() && !strings.HasPrefix(name, ".") && strings.HasSuffix(name, ".go")
 }
 
 // golist runs 'go list args' and assigns the result to pkgs.
@@ -106,7 +112,7 @@ func srcDir(path string) string {
 }
 
 func logf(format string, args ...interface{}) {
-	fmt.Fprint(os.Stderr, "godep: ")
+	fmt.Fprint(os.Stderr, "godefs: ")
 	fmt.Fprintf(os.Stderr, format+"\n", args...)
 }
 
