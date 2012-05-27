@@ -68,6 +68,8 @@ func recordDefs(pkg *ast.Package, fset *token.FileSet) {
 	for _, v := range f.Decls {
 		if decl, ok := v.(*ast.GenDecl); ok {
 			if decl.Tok == token.TYPE {
+				pos := fset.Position(decl.Pos())
+				fmt.Printf("// %v:%v\n", pos.Filename, pos.Line)
 				printer.Fprint(os.Stdout, fset, decl)
 				fmt.Printf("\n\n")
 			}
