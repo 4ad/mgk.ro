@@ -20,6 +20,7 @@ import (
 	"go/ast"
 	"go/build"
 	"go/parser"
+	"go/printer"
 	"go/token"
 	"os"
 	"os/exec"
@@ -42,14 +43,16 @@ func main() {
 	flag.Parse()
 
 	golist(flag.Args()...) // finds packages to work with.
-	for _, v := range pkgs {
-		dir := srcDir(v)
+	for _, pkg := range pkgs {
 		fset := token.NewFileSet()
-		ast, err := parser.ParseDir(fset, dir, isGoFile, parser.ParseComments)
+		asts, err := parser.ParseDir(fset, srcDir(pkg), isGoFile, parser.ParseComments)
 		if err != nil {
 			fatal(err)
 		}
-		recordDefs(ast[filepath.Base(v)]) // avoids _test packages.
+		for _, ast := range asts {
+			BUG(aram): exclude _test packages.
+			recordDefs(ast, fset)
+		}
 	}
 }
 
@@ -57,6 +60,20 @@ func isGoFile(f os.FileInfo) bool {
 	// ignore non-Go files
 	name := f.Name()
 	return !f.IsDir() && !strings.HasPrefix(name, ".") && strings.HasSuffix(name, ".go")
+}
+
+// recordDefs traverses the ast and records the type definitions.
+func recordDefs(pkg *ast.Package, fset *token.FileSet) {
+	for _, f := range pkg.Files {
+		for _, v := range f.Decls {
+			if decl, ok := v.(*ast.GenDecl); ok {
+				if decl.Tok == token.TYPE {
+					printer.Fprint(os.Stdout, fset, decl)
+					fmt.Printf("\n\n")
+				}
+			}
+		}
+	}
 }
 
 // golist runs 'go list args' and assigns the result to pkgs.
@@ -84,10 +101,6 @@ func golist(args ...string) {
 		os.Exit(1)
 	}
 	return
-}
-
-// recordDefs traverses the ast and records the type definitions.
-func recordDefs(pkg *ast.Package) {
 }
 
 // srcDir returns the directory where the package with the named
