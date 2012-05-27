@@ -49,9 +49,10 @@ func main() {
 		if err != nil {
 			fatal(err)
 		}
-		for _, ast := range asts {
+		for _, pkgast := range asts {
 			// BUG(aram): exclude _test packages.
-			recordDefs(ast, fset)
+			f := ast.MergePackageFiles(pkgast, ast.FilterImportDuplicates|ast.FilterFuncDuplicates)
+			recordDefs(f, fset)
 		}
 	}
 }
@@ -62,9 +63,8 @@ func isGoFile(f os.FileInfo) bool {
 	return !f.IsDir() && !strings.HasPrefix(name, ".") && strings.HasSuffix(name, ".go")
 }
 
-// recordDefs traverses the ast and records the type definitions.
-func recordDefs(pkg *ast.Package, fset *token.FileSet) {
-	f := ast.MergePackageFiles(pkg, ast.FilterImportDuplicates|ast.FilterFuncDuplicates)
+// recordDefs traverses the ast and records the type definitions found.
+func recordDefs(f *ast.File, fset *token.FileSet) {
 	for _, v := range f.Decls {
 		if decl, ok := v.(*ast.GenDecl); ok {
 			if decl.Tok == token.TYPE {
