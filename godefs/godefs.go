@@ -9,7 +9,7 @@ Usage:
 	godefs [packages]
 
 By default it prints type definitions for the package in the current
-directory. For more about specifying packages, see 'go help packages'.\
+directory. For more about specifying packages, see 'go help packages'.
 */
 package main
 
@@ -50,7 +50,6 @@ func main() {
 			fatal(err)
 		}
 		for _, pkgast := range asts {
-			// BUG(aram): exclude _test packages.
 			f := ast.MergePackageFiles(pkgast, ast.FilterImportDuplicates|ast.FilterFuncDuplicates)
 			recordDefs(f, fset)
 		}
@@ -58,9 +57,9 @@ func main() {
 }
 
 func isGoFile(f os.FileInfo) bool {
-	// ignore non-Go files
+	// ignore non-Go files and test files.
 	name := f.Name()
-	return !f.IsDir() && !strings.HasPrefix(name, ".") && strings.HasSuffix(name, ".go")
+	return !f.IsDir() && !strings.HasPrefix(name, ".") && strings.HasSuffix(name, ".go") && !strings.Contains(name, "_test")
 }
 
 // recordDefs traverses the ast and records the type definitions found.
