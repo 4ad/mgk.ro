@@ -28,12 +28,14 @@ import (
 )
 
 var (
-	pkgdir  string
-	stubdir string
+	fflag   = flag.Int("f", 0, "struct field verbosity.")
+	pkgdir  string // user supplied.
+	stubdir string // user supplied.
 )
 
 func usage() {
-	fmt.Fprint(os.Stderr, "usage: gostub pkg stubpkg\n")
+	fmt.Fprint(os.Stderr, "usage: gostub [options] pkg stubpkg\n")
+	flag.PrintDefaults()
 	os.Exit(1)
 }
 
@@ -41,6 +43,9 @@ func main() {
 	flag.Usage = usage
 	flag.Parse()
 	if flag.NArg() != 2 {
+		usage()
+	}
+	if *fflag < 0 || 2 < *fflag {
 		usage()
 	}
 
@@ -94,6 +99,7 @@ func copyGoStubs(src, dst string) (err error) {
 	if err != nil {
 		return
 	}
+	ast.FilterFile(fast, trimUnexported)
 	return printGoFile(dst, fset, fast)
 }
 
@@ -103,8 +109,17 @@ func compileGoFile(file string) (fset *token.FileSet, fast *ast.File, err error)
 	if err != nil {
 		return
 	}
-	ast.FileExports(fast)
 	return
+}
+
+func trimUnexported(name string) bool {
+	switch {
+	case *fflag == 0:
+		return ast.IsExported(name)
+	case *fflag == 1:
+	case *fflag == 2:
+	}
+	return false
 }
 
 func printGoFile(file string, fset *token.FileSet, fast *ast.File) (err error) {
