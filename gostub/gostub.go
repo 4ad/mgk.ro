@@ -45,9 +45,9 @@ func visitFile(path string, info os.FileInfo, verr error) (err error) {
 }
 
 func isGoFile(f os.FileInfo) bool {
-	// ignore non-Go files and test files.
+	// ignore non-Go files.
 	name := f.Name()
-	return !f.IsDir() && !strings.HasPrefix(name, ".") && strings.HasSuffix(name, ".go") && !strings.Contains(name, "_test")
+	return !f.IsDir() && !strings.HasPrefix(name, ".") && strings.HasSuffix(name, ".go")
 }
 
 func logf(format string, args ...interface{}) {
