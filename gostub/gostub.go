@@ -17,9 +17,15 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
+)
+
+var (
+	pkgdir  string
+	stubdir string
 )
 
 func usage() {
@@ -34,13 +40,42 @@ func main() {
 		usage()
 	}
 
-	err := filepath.Walk(flag.Arg(0), visitFile)
+	pkgdir = flag.Arg(0)
+	stubdir = flag.Arg(1)
+	err := filepath.Walk(pkgdir, visitFile)
 	if err != nil {
 		fatal(err)
 	}
 }
 
-func visitFile(path string, info os.FileInfo, verr error) (err error) {
+func visitFile(path string, f os.FileInfo, verr error) (err error) {
+	if verr != nil {
+		return verr
+	}
+	target := stubdir + path[len(pkgdir):]
+	if f.IsDir() {
+		return os.MkdirAll(target, f.Mode())
+	}
+	if isGoFile(f) {
+		return copyGoStubs(path, target)
+	}
+	return copyFile(path, target)
+}
+
+func copyFile(src, dst string) (err error) {
+	from, err := os.Open(src)
+	if err != nil {
+		return
+	}
+	defer from.Close()
+
+	to, err := os.Create(dst)
+	if err != nil {
+		return
+	}
+	defer to.Close()
+
+	_, err = io.Copy(to, from)
 	return
 }
 
@@ -48,6 +83,10 @@ func isGoFile(f os.FileInfo) bool {
 	// ignore non-Go files.
 	name := f.Name()
 	return !f.IsDir() && !strings.HasPrefix(name, ".") && strings.HasSuffix(name, ".go")
+}
+
+func copyGoStubs(src, dst string) (err error) {
+	return
 }
 
 func logf(format string, args ...interface{}) {
