@@ -17,6 +17,10 @@ package main
 import (
 	"flag"
 	"fmt"
+	"go/ast"
+	"go/parser"
+	"go/printer"
+	"go/token"
 	"io"
 	"os"
 	"path/filepath"
@@ -86,7 +90,30 @@ func isGoFile(f os.FileInfo) bool {
 }
 
 func copyGoStubs(src, dst string) (err error) {
+	fset, fast, err := compileGoFile(src)
+	if err != nil {
+		return
+	}
+	return printGoFile(dst, fset, fast)
+}
+
+func compileGoFile(file string) (fset *token.FileSet, fast *ast.File, err error) {
+	fset = token.NewFileSet()
+	fast, err = parser.ParseFile(fset, file, nil, parser.ParseComments)
+	if err != nil {
+		return
+	}
+	ast.FileExports(fast)
 	return
+}
+
+func printGoFile(file string, fset *token.FileSet, fast *ast.File) (err error) {
+	f, err := os.Create(file)
+	if err != nil {
+		return
+	}
+	defer f.Close()
+	return printer.Fprint(f, fset, fast)
 }
 
 func logf(format string, args ...interface{}) {
