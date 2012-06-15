@@ -3,9 +3,9 @@
 
 package main
 
-import . "go/ast"
+import "go/ast"
 
-func myFilterIdentList(list []*Ident, f Filter) []*Ident {
+func myFilterIdentList(list []*ast.Ident, f ast.Filter) []*ast.Ident {
 	j := 0
 	for _, x := range list {
 		if f(x.Name) {
@@ -20,21 +20,21 @@ func myFilterIdentList(list []*Ident, f Filter) []*Ident {
 // returns the corresponding field name. If x is not an acceptable
 // anonymous field, the result is nil.
 //
-func myFieldName(x Expr) *Ident {
+func myFieldName(x ast.Expr) *ast.Ident {
 	switch t := x.(type) {
-	case *Ident:
+	case *ast.Ident:
 		return t
-	case *SelectorExpr:
-		if _, ok := t.X.(*Ident); ok {
+	case *ast.SelectorExpr:
+		if _, ok := t.X.(*ast.Ident); ok {
 			return t.Sel
 		}
-	case *StarExpr:
+	case *ast.StarExpr:
 		return myFieldName(t.X)
 	}
 	return nil
 }
 
-func myFilterFieldList(fields *FieldList, filter Filter, export bool) (removedFields bool) {
+func myFilterFieldList(fields *ast.FieldList, filter ast.Filter, export bool) (removedFields bool) {
 	if fields == nil {
 		return false
 	}
@@ -69,7 +69,7 @@ func myFilterFieldList(fields *FieldList, filter Filter, export bool) (removedFi
 	return
 }
 
-func myFilterParamList(fields *FieldList, filter Filter, export bool) bool {
+func myFilterParamList(fields *ast.FieldList, filter ast.Filter, export bool) bool {
 	if fields == nil {
 		return false
 	}
@@ -82,41 +82,41 @@ func myFilterParamList(fields *FieldList, filter Filter, export bool) bool {
 	return b
 }
 
-func myFilterType(typ Expr, f Filter, export bool) bool {
+func myFilterType(typ ast.Expr, f ast.Filter, export bool) bool {
 	switch t := typ.(type) {
-	case *Ident:
+	case *ast.Ident:
 		return f(t.Name)
-	case *ParenExpr:
+	case *ast.ParenExpr:
 		return myFilterType(t.X, f, export)
-	case *ArrayType:
+	case *ast.ArrayType:
 		return myFilterType(t.Elt, f, export)
-	case *StructType:
+	case *ast.StructType:
 		if myFilterFieldList(t.Fields, f, export) {
 			t.Incomplete = true
 		}
 		return len(t.Fields.List) > 0
-	case *FuncType:
+	case *ast.FuncType:
 		b1 := myFilterParamList(t.Params, f, export)
 		b2 := myFilterParamList(t.Results, f, export)
 		return b1 || b2
-	case *InterfaceType:
+	case *ast.InterfaceType:
 		if myFilterFieldList(t.Methods, f, export) {
 			t.Incomplete = true
 		}
 		return len(t.Methods.List) > 0
-	case *MapType:
+	case *ast.MapType:
 		b1 := myFilterType(t.Key, f, export)
 		b2 := myFilterType(t.Value, f, export)
 		return b1 || b2
-	case *ChanType:
+	case *ast.ChanType:
 		return myFilterType(t.Value, f, export)
 	}
 	return false
 }
 
-func myFilterSpec(spec Spec, f Filter, export bool) bool {
+func myFilterSpec(spec ast.Spec, f ast.Filter, export bool) bool {
 	switch s := spec.(type) {
-	case *ValueSpec:
+	case *ast.ValueSpec:
 		s.Names = myFilterIdentList(s.Names, f)
 		if len(s.Names) > 0 {
 			if export {
@@ -124,7 +124,7 @@ func myFilterSpec(spec Spec, f Filter, export bool) bool {
 			}
 			return true
 		}
-	case *TypeSpec:
+	case *ast.TypeSpec:
 		if f(s.Name.Name) {
 			if export {
 				myFilterType(s.Type, f, export)
@@ -143,7 +143,7 @@ func myFilterSpec(spec Spec, f Filter, export bool) bool {
 	return false
 }
 
-func myFilterSpecList(list []Spec, f Filter, export bool) []Spec {
+func myFilterSpecList(list []ast.Spec, f ast.Filter, export bool) []ast.Spec {
 	j := 0
 	for _, s := range list {
 		if myFilterSpec(s, f, export) {
@@ -154,12 +154,12 @@ func myFilterSpecList(list []Spec, f Filter, export bool) []Spec {
 	return list[0:j]
 }
 
-func myFilterDecl(decl Decl, f Filter, export bool) bool {
+func myFilterDecl(decl ast.Decl, f ast.Filter, export bool) bool {
 	switch d := decl.(type) {
-	case *GenDecl:
+	case *ast.GenDecl:
 		d.Specs = myFilterSpecList(d.Specs, f, export)
 		return len(d.Specs) > 0
-	case *FuncDecl:
+	case *ast.FuncDecl:
 		return f(d.Name.Name)
 	}
 	return false
@@ -167,10 +167,10 @@ func myFilterDecl(decl Decl, f Filter, export bool) bool {
 
 // myExportFilter is a special filter function to extract exported nodes.
 func myExportFilter(name string) bool {
-	return IsExported(name)
+	return ast.IsExported(name)
 }
 
-func myFilterFile(src *File, f Filter, export bool) bool {
+func myFilterFile(src *ast.File, f ast.Filter, export bool) bool {
 	j := 0
 	for _, d := range src.Decls {
 		if myFilterDecl(d, f, export) {
