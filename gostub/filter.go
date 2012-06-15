@@ -5,13 +5,18 @@ package main
 
 import "go/ast"
 
+type Filter func(string, *ast.Ident) bool
+
 func myFilterIdentList(list []*ast.Ident, f ast.Filter) []*ast.Ident {
 	j := 0
 	for _, x := range list {
-		if f(x.Name) {
-			list[j] = x
-			j++
-		}
+		//		if f(x.Name) {
+		// 			list[j] = x
+		// 			j++
+		// 		}
+		// BUG(aram): only -f2 is supported.
+		list[j] = x
+		j++
 	}
 	return list[0:j]
 }
@@ -160,6 +165,7 @@ func myFilterDecl(decl ast.Decl, f ast.Filter, export bool) bool {
 		d.Specs = myFilterSpecList(d.Specs, f, export)
 		return len(d.Specs) > 0
 	case *ast.FuncDecl:
+		d.Body = nil // BUG(aram): add stub return.
 		return f(d.Name.Name)
 	}
 	return false
