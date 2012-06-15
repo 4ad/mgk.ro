@@ -99,7 +99,7 @@ func copyGoStubs(src, dst string) (err error) {
 	if err != nil {
 		return
 	}
-	ast.FilterFile(fast, trimUnexported)
+	myFilterFile(fast, myExportFilter, true)
 	return printGoFile(dst, fset, fast)
 }
 
@@ -110,16 +110,6 @@ func compileGoFile(file string) (fset *token.FileSet, fast *ast.File, err error)
 		return
 	}
 	return
-}
-
-func trimUnexported(name string) bool {
-	switch {
-	case *fflag == 0:
-		return ast.IsExported(name)
-	case *fflag == 1:
-	case *fflag == 2:
-	}
-	return false
 }
 
 func printGoFile(file string, fset *token.FileSet, fast *ast.File) (err error) {
