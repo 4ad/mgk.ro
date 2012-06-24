@@ -11,6 +11,9 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path"
 )
 
 func usage() {
@@ -21,4 +24,17 @@ func usage() {
 func main() {
 	flag.Usage = usage
 	flag.Parse()
+
+	files := flag.Args()
+	if len(files) == 0 {
+		files = append(files, os.Stdin.Name())
+	}
+	for _, name := range files {
+		b, err := ioutil.ReadFile(name)
+		if err != nil {
+			fmt.Fprint(os.Stderr, "goembed: %v\n", err)
+			os.Exit(2)
+		}
+		fmt.Printf("var %s = %#v\n\n", path.Base(name), b)
+	}
 }
