@@ -22,10 +22,13 @@ import (
 	"go/parser"
 	"go/printer"
 	"go/token"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	_ "code.google.com/p/rbits/log"
 )
 
 var (
@@ -47,7 +50,7 @@ func main() {
 		fset := token.NewFileSet()
 		asts, err := parser.ParseDir(fset, srcDir(pkg), isGoFile, parser.ParseComments)
 		if err != nil {
-			fatal(err)
+			log.Fatal(err)
 		}
 		for _, pkgast := range asts {
 			f := ast.MergePackageFiles(pkgast, ast.FilterImportDuplicates|ast.FilterFuncDuplicates)
@@ -82,12 +85,12 @@ func golist(args ...string) {
 	cmd.Stderr = os.Stderr
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		fatal(err)
+		log.Fatal(err)
 	}
 	r := bufio.NewReader(stdout)
 
 	if err = cmd.Start(); err != nil {
-		fatal(err)
+		log.Fatal(err)
 	}
 	for {
 		pkg, _, err := r.ReadLine()
@@ -118,21 +121,7 @@ func srcDir(path string) string {
 	// A regular package in $GOROOT/src/pkg or in any $GOPATH/src.
 	pkg, err := bldCtxt.Import(path, "", build.FindOnly)
 	if err != nil {
-		fatal(err)
+		log.Fatal(err)
 	}
 	return pkg.Dir
 }
-
-func logf(format string, args ...interface{}) {
-	fmt.Fprint(os.Stderr, "godefs: ")
-	fmt.Fprintf(os.Stderr, format+"\n", args...)
-}
-
-func log(args ...interface{}) { logf("%v", args...) }
-
-func fatalf(format string, args ...interface{}) {
-	logf(format, args...)
-	os.Exit(2)
-}
-
-func fatal(args ...interface{}) { fatalf("%v", args...) }

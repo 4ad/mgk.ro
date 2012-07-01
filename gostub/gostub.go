@@ -22,9 +22,12 @@ import (
 	"go/printer"
 	"go/token"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
+
+	_ "code.google.com/p/rbits/log"
 )
 
 var (
@@ -53,7 +56,7 @@ func main() {
 	stubdir = flag.Arg(1)
 	err := filepath.Walk(pkgdir, visitFile)
 	if err != nil {
-		fatal(err)
+		log.Fatal(err)
 	}
 }
 
@@ -120,17 +123,3 @@ func printGoFile(file string, fset *token.FileSet, fast *ast.File) (err error) {
 	defer f.Close()
 	return printer.Fprint(f, fset, fast)
 }
-
-func logf(format string, args ...interface{}) {
-	fmt.Fprint(os.Stderr, "gostub: ")
-	fmt.Fprintf(os.Stderr, format+"\n", args...)
-}
-
-func log(args ...interface{}) { logf("%v", args...) }
-
-func fatalf(format string, args ...interface{}) {
-	logf(format, args...)
-	os.Exit(2)
-}
-
-func fatal(args ...interface{}) { fatalf("%v", args...) }

@@ -12,8 +12,11 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"path"
+
+	_ "code.google.com/p/rbits/log"
 )
 
 func usage() {
@@ -32,8 +35,7 @@ func main() {
 	for _, name := range files {
 		b, err := ioutil.ReadFile(name)
 		if err != nil {
-			fmt.Fprint(os.Stderr, "goembed: %v\n", err)
-			os.Exit(2)
+			log.Fatal(err)
 		}
 		fmt.Printf("var %s = %#v\n\n", path.Base(name), b)
 	}

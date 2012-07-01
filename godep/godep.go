@@ -25,10 +25,13 @@ import (
 	"flag"
 	"fmt"
 	"go/build"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+//	_ "code.google.com/p/rbits/log"
 )
 
 var (
@@ -76,7 +79,7 @@ func main() {
 		switch {
 		case *flagDot:
 		case *flagPng != "":
-			fatal("-png flag not implemented")
+			log.Fatal("-png flag not implemented")
 		case *flagP:
 			// redeclared because it's not shared between iterations.
 			visitedPkgs := make(map[string]pkgStatus)
@@ -96,12 +99,12 @@ func golist(args ...string) {
 	cmd.Stderr = os.Stderr
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		fatal(err)
+		log.Fatal(err)
 	}
 	r := bufio.NewReader(stdout)
 
 	if err = cmd.Start(); err != nil {
-		fatal(err)
+		log.Fatal(err)
 	}
 	for {
 		pkg, _, err := r.ReadLine()
@@ -122,7 +125,7 @@ func golist(args ...string) {
 func dfs(path string) {
 	pkg, err := bldCtxt.ImportDir(srcDir(path), 0)
 	if err != nil {
-		fatal(err)
+		log.Fatal(err)
 	}
 	deps := pkg.Imports
 	pkgdep[path] = deps
@@ -189,23 +192,9 @@ func srcDir(path string) string {
 		// A regular package in $GOROOT/src/pkg or in any $GOPATH/src.
 		pkg, err := bldCtxt.Import(path, "", build.FindOnly)
 		if err != nil {
-			fatal(err)
+			log.Fatal(err)
 		}
 		return pkg.Dir
 	}
 	return cmdpath
 }
-
-func logf(format string, args ...interface{}) {
-	fmt.Fprint(os.Stderr, "godep: ")
-	fmt.Fprintf(os.Stderr, format+"\n", args...)
-}
-
-func log(args ...interface{}) { logf("%v", args...) }
-
-func fatalf(format string, args ...interface{}) {
-	logf(format, args...)
-	os.Exit(2)
-}
-
-func fatal(args ...interface{}) { fatalf("%v", args...) }
