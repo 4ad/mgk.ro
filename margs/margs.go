@@ -2,13 +2,16 @@
 // any purpose is hereby granted, provided this notice appear in all copies.
 
 /*
-Marg (map arguments) reads from standard input and for each line read,
-it executes the command with the specified arguments followed by the
-line that has been read. -I replstr flag causes each instance of replstr
-(usually {}) found in the command to be replaced with the line read,
-instead of the line being added at the end of the command.
+Margs: map arguments.
+	margs [-I {}] cmd [args...]
 
-Marg is equivalent to xargs -n1.
+For each line read from standard input, margs executes cmd with the
+specified args followed by the line that has been read. -I replstr option
+causes each instance of replstr (usually {}) found in the command to be
+replaced with the line read, instead of the line being added at the end
+of the command.
+
+Marg is similar to xargs -n1.
 */
 package main
 
