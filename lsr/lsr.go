@@ -10,9 +10,9 @@ directory; for each file argument, lsr repeats its name. When no argument
 is given, the current directory is listed.
 
 Options:
-	-d  only print directories
-	-fd	print both files and directories
-	-l  list in long format; name mode mtime size
+    -d  only print directories
+    -fd print both files and directories
+    -l  list in long format; name mode mtime size
 */
 package main
 
