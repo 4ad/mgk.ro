@@ -31,7 +31,7 @@ import (
 	"path/filepath"
 	"strings"
 
-//	_ "code.google.com/p/rbits/log"
+	_ "code.google.com/p/rbits/log"
 )
 
 var (
