@@ -1,6 +1,3 @@
-// Permission to use, copy, modify, and/or distribute this software for
-// any purpose is hereby granted, provided this notice appear in all copies.
-
 /*
 Lsr: list recursively.
 	lsr [-d | -fd] [name ...]
