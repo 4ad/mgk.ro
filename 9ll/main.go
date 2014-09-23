@@ -22,6 +22,9 @@ var (
 	inc = flag.String("I", "", "include directory")
 )
 
+// deps is the dependency graph between symbols.
+var deps = map[*cc.Decl][]*cc.Decl{}
+
 func main() {
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "usage: 9ll [flags] files ...\n")
@@ -50,15 +53,23 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	depGraph(prog)
+	fmt.Println(deps)
+}
+
+func depGraph(prog *cc.Prog) {
+	var curfunc *cc.Decl
 	cc.Preorder(prog, func(x cc.Syntax) {
 		switch x := x.(type) {
-		case *cc.Type:
-			if x.Is(cc.Func) {
-				var p cc.Printer
-				p.Print(x)
-				fmt.Println(p.String())
+		case *cc.Decl:
+			if x.Type.Is(cc.Func) {
+				deps[x] = nil
+				curfunc = x
+			}
+		case *cc.Expr:
+			if x.Op == cc.Call {
+				deps[curfunc] = append(deps[curfunc], x.Left.XDecl)
 			}
 		}
 	})
-	_ = prog
 }
