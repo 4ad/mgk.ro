@@ -54,7 +54,12 @@ func main() {
 		log.Fatal(err)
 	}
 	depGraph(prog)
-	fmt.Println(deps)
+	for f, d := range deps {
+		fmt.Printf("%s	%s\n", f.Name, f.GetSpan())
+		for _, d := range d {
+			fmt.Printf("	%s	%s\n", d.Name, d.GetSpan())
+		}
+	}
 }
 
 func depGraph(prog *cc.Prog) {
@@ -68,6 +73,11 @@ func depGraph(prog *cc.Prog) {
 			}
 		case *cc.Expr:
 			if x.Op == cc.Call {
+				for _, v := range deps[curfunc] {
+					if x.Left.XDecl == v {
+						return
+					}
+				}
 				deps[curfunc] = append(deps[curfunc], x.Left.XDecl)
 			}
 		}
