@@ -54,11 +54,9 @@ func main() {
 		log.Fatal(err)
 	}
 	depGraph(prog)
-	for f, d := range deps {
-		fmt.Printf("%s	%s\n", f.Name, f.GetSpan())
-		for _, d := range d {
-			fmt.Printf("	%s	%s\n", d.Name, d.GetSpan())
-		}
+	subset := append(extract(lookup("span")), extract(lookup("asmb"))...)
+	for _, v := range subset {
+		fmt.Printf("%s	%s\n", v.Name, v.GetSpan())
 	}
 }
 
@@ -82,4 +80,30 @@ func depGraph(prog *cc.Prog) {
 			}
 		}
 	})
+}
+
+func lookup(name string) *cc.Decl {
+	for s := range deps {
+		if s.Name == name {
+			return s
+		}
+	}
+	return nil
+}
+
+func extract(f *cc.Decl) (subset []*cc.Decl) {
+	var r func(f *cc.Decl)
+	r = func(f *cc.Decl) {
+		for _, s := range subset {
+			if s == f {
+				return
+			}
+		}
+		subset = append(subset, f)
+		for _, d := range deps[f] {
+			r(d)
+		}
+	}
+	r(f)
+	return
 }
