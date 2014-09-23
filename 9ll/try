@@ -1,8 +1,7 @@
 #!/usr/bin/env rc
 
 goroot=$home/go
-srcs=`{echo $goroot/src/liblink/*.c}
-hdrs=($goroot/include/link.h $goroot/src/pkg/runtime/stack.h $goroot/src/cmd/ld/textflag.h `{echo $goroot/src/cmd/?l/?.out.h} $goroot/src/liblink/l.h)
+_7l=(dyn.c sub.c mod.c list.c noop.c elf.c pass.c pobj.c asm.c optab.c obj.c span.c asmout.c) # missing *.h pstate.h main.h
+srcs=$goroot^/src/cmd/7l/^$_7l
 
-go install code.google.com/p/rbits/9ll
-9ll $srcs $hdrs
+9ll $srcs

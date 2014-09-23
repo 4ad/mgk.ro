@@ -50,5 +50,15 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	cc.Preorder(prog, func(x cc.Syntax) {
+		switch x := x.(type) {
+		case *cc.Type:
+			if x.Is(cc.Func) {
+				var p cc.Printer
+				p.Print(x)
+				fmt.Println(p.String())
+			}
+		}
+	})
 	_ = prog
 }
