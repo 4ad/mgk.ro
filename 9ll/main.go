@@ -1,6 +1,6 @@
 /*
 9ll: refactor Plan 9 linkers
-	9ll -I includedir [files ...]
+	9ll [files ...]
 
 9ll helps refactor Plan 9 linkers into liblink form used by Go.
 */
@@ -12,35 +12,49 @@ import (
 	"io"
 	"log"
 	"os"
+	"runtime"
 
 	"code.google.com/p/rsc/cc"
 
 	_ "code.google.com/p/rbits/log"
 )
 
-var (
-	inc = flag.String("I", "", "include directory")
-)
+// missing missing *.h pstate.c main.c.
+var files = []string{
+	"dyn.c",
+	"sub.c",
+	"mod.c",
+	"list.c",
+	"noop.c",
+	"elf.c",
+	"pass.c",
+	"pobj.c",
+	"asm.c",
+	"optab.c",
+	"obj.c",
+	"span.c",
+	"asmout.c",
+}
 
 // deps is the dependency graph between symbols.
 var deps = map[*cc.Decl][]*cc.Decl{}
 
 func main() {
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "usage: 9ll [flags] files ...\n")
-		flag.PrintDefaults()
+		fmt.Fprintf(os.Stderr, "usage: 9ll [files] ...\n")
+		fmt.Fprintf(os.Stderr, "\tdefault files are from $GOOROT/src/cmd/7l")
 		os.Exit(1)
 	}
 	flag.Parse()
 	args := flag.Args()
-	if *inc != "" {
-		cc.AddInclude(*inc)
-	}
-	if len(args) == 0 {
-		flag.Usage()
+	if len(args) != 0 {
+		files = args
+	} else {
+		for k, v := range files {
+			files[k] = runtime.GOROOT() + "/src/cmd/7l/" + v;
+		}
 	}
 	var r []io.Reader
-	files := args
 	for _, file := range files {
 		f, err := os.Open(file)
 		if err != nil {
