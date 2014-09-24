@@ -42,6 +42,8 @@ var start = []string {
 	"span",
 	"asmout",
 	"chipfloat",
+	"follow",
+	"noops",
 }
 
 // deps is the dependency graph between symbols.
