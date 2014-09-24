@@ -37,6 +37,13 @@ var files = []string{
 	"asmout.c",
 }
 
+// symbols to start from
+var start = []string {
+	"span",
+	"asmout",
+	"chipfloat",
+}
+
 // deps is the dependency graph between symbols.
 var deps = map[*cc.Decl][]*cc.Decl{}
 
@@ -68,10 +75,26 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	depGraph(prog)
-	subset := append(extract(lookup("span")), extract(lookup("asmout"))...)
+	var subset []*cc.Decl
+	for _, v := range start {
+		subset = append(subset, extract(lookup(v))...)
+	}
+
+	out, err := os.Create("zzz.c")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer out.Close()
+	out.WriteString("//+build ignore\n\n")
 	for _, v := range subset {
-		fmt.Printf("%s	%s\n", v.Name, path.Base(vl.Span.Start.File))
+		_ = path.Base
+		// fmt.Printf("%s	%s\n", v.Name, path.Base(v.Span.Start.File))
+		var pp cc.Printer
+		pp.Print(v)
+		out.Write(pp.Bytes())
+		out.WriteString("\n\n")
 	}
 }
 
