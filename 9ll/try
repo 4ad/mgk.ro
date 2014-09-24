@@ -1,7 +1,7 @@
 #!/usr/bin/env rc
 
 goroot=$home/go
-_7l=(dyn.c sub.c mod.c list.c noop.c elf.c pass.c pobj.c asm.c optab.c obj.c span.c asmout.c) # missing *.h pstate.h main.h
+_7l=(dyn.c sub.c mod.c list.c noop.c elf.c pass.c pobj.c asm.c optab.c obj.c span.c asmout.c) # missing *.h pstate.c main.c
 srcs=$goroot^/src/cmd/7l/^$_7l
 
 9ll $srcs

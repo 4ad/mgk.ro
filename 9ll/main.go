@@ -1,6 +1,6 @@
 /*
 9ll: refactor Plan 9 linkers
-	9ll [files ...]
+	9ll -I includedir [files ...]
 
 9ll helps refactor Plan 9 linkers into liblink form used by Go.
 */
@@ -65,11 +65,17 @@ func depGraph(prog *cc.Prog) {
 	cc.Preorder(prog, func(x cc.Syntax) {
 		switch x := x.(type) {
 		case *cc.Decl:
+			// A function declaration. Function prototypes in the
+			// middle of a function would probably break our plans,
+			// but we hope for the best.
 			if x.Type.Is(cc.Func) {
 				deps[x] = nil
 				curfunc = x
 			}
 		case *cc.Expr:
+			// Direct function call. We miss indirect function
+			// calls, but that's ok. The plan is to record
+			// geting the address of a function too.
 			if x.Op == cc.Call {
 				for _, v := range deps[curfunc] {
 					if x.Left.XDecl == v {
@@ -91,6 +97,8 @@ func lookup(name string) *cc.Decl {
 	return nil
 }
 
+// extract returns the recursive list of functions called by f
+// x.Type.Is(cc.Func) must be true for f, and will be true for subset.
 func extract(f *cc.Decl) (subset []*cc.Decl) {
 	var r func(f *cc.Decl)
 	r = func(f *cc.Decl) {
