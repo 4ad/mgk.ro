@@ -19,7 +19,7 @@ import (
 	_ "code.google.com/p/rbits/log"
 )
 
-// missing missing *.h pstate.c main.c.
+// missing *.h pstate.c main.c.
 var files = []string{
 	"dyn.c",
 	"sub.c",
@@ -51,7 +51,7 @@ func main() {
 		files = args
 	} else {
 		for k, v := range files {
-			files[k] = runtime.GOROOT() + "/src/cmd/7l/" + v;
+			files[k] = runtime.GOROOT() + "/src/cmd/7l/" + v
 		}
 	}
 	var r []io.Reader
