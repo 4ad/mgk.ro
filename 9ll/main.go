@@ -74,24 +74,24 @@ func depGraph(prog *cc.Prog) {
 			}
 		case *cc.Expr:
 			switch x.Op {
-			case cc.Addr:
-				// We take the address of something; if it's a function,
-				// record it.
-				if x.Left != nil && x.Left.XDecl != nil {
-					if !x.Left.XDecl.Type.Is(cc.Func) {
+			// Potentially indirect function dependency by taking a
+			// function's address, which can be both &foo and foo.
+			case cc.Addr, cc.Name:
+				if x.Left == nil || x.Left.XDecl == nil {
+					return
+				}
+				if !x.Left.XDecl.Type.Is(cc.Func) {
+					return
+				}
+				for _, v := range deps[curfunc] {
+					if x.Left.XDecl == v {
 						return
 					}
-					for _, v := range deps[curfunc] {
-						if x.Left.XDecl == v {
-							return
-						}
-					}
-					deps[curfunc] = append(deps[curfunc], x.Left.XDecl)
 				}
+				deps[curfunc] = append(deps[curfunc], x.Left.XDecl)
+				fmt.Println(x.Left.XDecl.Name)
+			// Direct function call.
 			case cc.Call:
-				// Direct function call. We miss indirect function
-				// calls, but that's ok. The plan is to record
-				// geting the address of a function too.
 				for _, v := range deps[curfunc] {
 					if x.Left.XDecl == v {
 						return
