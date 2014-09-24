@@ -14,6 +14,7 @@ import (
 	"os"
 	"path"
 	"runtime"
+	"strings"
 
 	"code.google.com/p/rsc/cc"
 
@@ -38,7 +39,7 @@ var files = []string{
 }
 
 // symbols to start from
-var start = []string {
+var start = []string{
 	"span",
 	"asmout",
 	"chipfloat",
@@ -84,19 +85,31 @@ func main() {
 		subset = append(subset, extract(lookup(v))...)
 	}
 
-	out, err := os.Create("zzz.c")
-	if err != nil {
+	if os.RemoveAll("liblink") != nil {
 		log.Fatal(err)
 	}
-	defer out.Close()
-	out.WriteString("//+build ignore\n\n")
+	if os.MkdirAll("liblink", 0775) != nil {
+		log.Fatal(err)
+	}
+	file := make(map[string]*os.File)
 	for _, v := range subset {
-		_ = path.Base
-		// fmt.Printf("%s	%s\n", v.Name, path.Base(v.Span.Start.File))
+		if !strings.Contains(v.Span.String(), "7l") {
+			continue
+		}
+		f, ok := file[v.Span.Start.File]
+		if !ok {
+			f, err = os.Create("liblink/" + path.Base(v.Span.Start.File))
+			if err != nil {
+				log.Fatal(err)
+			}
+			defer f.Close()
+			file[v.Span.Start.File] = f
+			f.WriteString("//+build ignore\n\n")
+		}
 		var pp cc.Printer
 		pp.Print(v)
-		out.Write(pp.Bytes())
-		out.WriteString("\n\n")
+		f.Write(pp.Bytes())
+		f.WriteString("\n\n")
 	}
 }
 
