@@ -12,6 +12,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"path"
 	"runtime"
 
 	"code.google.com/p/rsc/cc"
@@ -68,9 +69,9 @@ func main() {
 		log.Fatal(err)
 	}
 	depGraph(prog)
-	subset := append(extract(lookup("span")), extract(lookup("asmb"))...)
+	subset := append(extract(lookup("span")), extract(lookup("asmout"))...)
 	for _, v := range subset {
-		fmt.Printf("%s	%s\n", v.Name, v.GetSpan())
+		fmt.Printf("%s	%s\n", v.Name, path.Base(vl.Span.Start.File))
 	}
 }
 
