@@ -85,7 +85,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	depGraph(prog)
+	dep(prog)
 	var syms []*cc.Decl
 	for _, v := range start {
 		syms = append(syms, lookup(v))
@@ -125,7 +125,7 @@ func print(fns []*cc.Decl, dir string) {
 	}
 }
 
-func depGraph(prog *cc.Prog) {
+func dep(prog *cc.Prog) {
 	var curfunc *cc.Decl
 	cc.Preorder(prog, func(x cc.Syntax) {
 		switch x := x.(type) {
