@@ -49,12 +49,12 @@ var iomap = map[string]string{
 
 // symbols to start from
 var start = map[string]bool{
-	"span": true,
-	"asmout": true,
+	"span":      true,
+	"asmout":    true,
 	"chipfloat": true,
-	"follow": true,
-	"noops": true,
-	"listinit": true,
+	"follow":    true,
+	"noops":     true,
+	"listinit":  true,
 }
 
 // symbols to be renamed.
@@ -62,6 +62,7 @@ var rename = map[string]string{
 	"span":      "span7",
 	"chipfloat": "chipfloat7",
 	"listinit":  "listinit7",
+	"noops":     "addstacksplit",
 }
 
 var includes = `#include <u.h>
@@ -295,7 +296,7 @@ func ren(prog *cc.Prog, syms symbols) {
 		s.Name = rename[s.Name]
 	}
 	cc.Preorder(prog, func(x cc.Syntax) {
-		e, ok :=  x.(*cc.Expr)
+		e, ok := x.(*cc.Expr)
 		if !ok {
 			return
 		}
