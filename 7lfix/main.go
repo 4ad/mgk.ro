@@ -369,10 +369,10 @@ func symfile(prog *cc.Prog, all symbols) map[string]map[*cc.Decl]bool {
 // It patches fns in place.
 func static(fns []*cc.Decl, syms map[string]map[*cc.Decl]bool) {
 	for _, v := range fns {
-		def := v.Span.Start.File
+		def := iomap[v.Span.Start.File]
 		static := true
 		for file, s := range syms {
-			if file == def {
+			if iomap[file] == def {
 				continue
 			}
 			if _, ok := s[v]; ok {
