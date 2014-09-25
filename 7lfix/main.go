@@ -22,8 +22,8 @@ import (
 
 const (
 	theChar = 7
-	ld = "7l"
-	lddir = "/src/cmd/" + ld
+	ld      = "7l"
+	lddir   = "/src/cmd/" + ld
 )
 
 // iomap maps each input file to its corresponding output file.
@@ -65,16 +65,15 @@ var includes = `#include <u.h>
 // symbols is a symbol table.
 type symbols map[*cc.Decl][]*cc.Decl
 
-// deps is the dependency graph between symbols.
-var deps = symbols{}
-
-// all are all the symbols, for quick access
-var all = symbols{}
+var (
+	deps = symbols{} // deps is the dependency graph between wanted symbols
+	all  = symbols{} // all are all the symbols, for quick lookup
+)
 
 // replace unqualified names in iomap with full paths.
 func init() {
 	for k, v := range iomap {
-		iomap[runtime.GOROOT() + lddir + "/" + k] = v
+		iomap[runtime.GOROOT()+lddir+"/"+k] = v
 		delete(iomap, k)
 	}
 }
@@ -82,15 +81,15 @@ func init() {
 func main() {
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "usage: 7lfix\n")
-		fmt.Fprintf(os.Stderr, "\tfiles are from $GOOROT" + lddir)
+		fmt.Fprintf(os.Stderr, "\tfiles are from $GOOROT"+lddir)
 		os.Exit(1)
 	}
 	if flag.NArg() != 0 {
 		flag.Usage()
 	}
 	prog := parse()
-	symtab(prog)
-	dep(prog)
+	all = symtab(prog)
+	deps = dep(prog, all)
 	var syms []*cc.Decl
 	for _, v := range start {
 		syms = append(syms, deps.lookup(v))
@@ -165,7 +164,8 @@ func print(fns []*cc.Decl, dir string) {
 	}
 }
 
-func dep(prog *cc.Prog) {
+func dep(prog *cc.Prog, all symbols) symbols {
+	var deps = symbols{}
 	var curfunc *cc.Decl
 	cc.Preorder(prog, func(x cc.Syntax) {
 		switch x := x.(type) {
@@ -181,10 +181,6 @@ func dep(prog *cc.Prog) {
 			switch x.Op {
 			// Using a name for a function address.
 			case cc.Name:
-				if curfunc.Name == "listinit" {
-					fmt.Println("in", curfunc.Name, curfunc.GetSpan())
-					fmt.Println("	looking for", x.Text, x.GetSpan())
-				}
 				xfn := all.lookup(x.Text)
 				if xfn == nil {
 					return
@@ -223,10 +219,12 @@ func dep(prog *cc.Prog) {
 			}
 		}
 	})
+	return deps
 }
 
-// symtab populates the all symbol table.
-func symtab(prog *cc.Prog) {
+// symtab creates a symbol table.
+func symtab(prog *cc.Prog) symbols {
+	s := symbols{}
 	cc.Preorder(prog, func(x cc.Syntax) {
 		d, ok := x.(*cc.Decl)
 		if !ok {
@@ -235,8 +233,9 @@ func symtab(prog *cc.Prog) {
 		if !d.Type.Is(cc.Func) {
 			return
 		}
-		all[d] = nil
+		s[d] = nil
 	})
+	return s
 }
 
 func (st symbols) lookup(name string) *cc.Decl {
