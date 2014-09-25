@@ -52,6 +52,7 @@ var start = []string{
 	"chipfloat",
 	"follow",
 	"noops",
+	"listinit",
 }
 
 var includes = `#include <u.h>
@@ -138,7 +139,7 @@ func print(fns []*cc.Decl, dir string) {
 		f, ok := file[name]
 		if !ok {
 			// fmt.Printf("%v:	%v\n", dir + "/" + name, file)
-			f, err := os.Create(dir + "/" + name)
+			f, err = os.Create(dir + "/" + name)
 			if err != nil {
 				log.Fatal(err)
 			}
