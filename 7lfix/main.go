@@ -27,21 +27,23 @@ const (
 	lddir = "/src/cmd/" + ld
 )
 
+// iomap maps each input file to its corresponding output file.
+// Unknown files go to xxx.c.
 // missing *.h pstate.c main.c.
-var files = []string{
-	"dyn.c",
-	"sub.c",
-	"mod.c",
-	"list.c",
-	"noop.c",
-	"elf.c",
-	"pass.c",
-	"pobj.c",
-	"asm.c",
-	"optab.c",
-	"obj.c",
-	"span.c",
-	"asmout.c",
+var iomap = map[string]string{
+	"dyn.c":    "xxx.c",
+	"sub.c":    "xxx.c",
+	"mod.c":    "xxx.c",
+	"list.c":   "xxx.c",
+	"noop.c":   "xxx.c",
+	"elf.c":    "xxx.c",
+	"pass.c":   "xxx.c",
+	"pobj.c":   "xxx.c",
+	"asm.c":    "xxx.c",
+	"optab.c":  "xxx.c",
+	"obj.c":    "xxx.c",
+	"span.c":   "xxx.c",
+	"asmout.c": "xxx.c",
 }
 
 // symbols to start from
@@ -56,35 +58,25 @@ var start = []string{
 // deps is the dependency graph between symbols.
 var deps = map[*cc.Decl][]*cc.Decl{}
 
+// fixiomap replaces unqualified names in iomap with full paths.
+func fixiomap() {
+	for k, v := range iomap {
+		iomap[runtime.GOROOT() + lddir + "/" + k] = v
+		delete(iomap, k)
+	}
+}
+
 func main() {
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "usage: 7lfix [files] ...\n")
-		fmt.Fprintf(os.Stderr, "\tdefault files are from $GOOROT" + lddir)
+		fmt.Fprintf(os.Stderr, "usage: 7lfix\n")
+		fmt.Fprintf(os.Stderr, "\tfiles are from $GOOROT" + lddir)
 		os.Exit(1)
 	}
-	flag.Parse()
-	args := flag.Args()
-	if len(args) != 0 {
-		files = args
-	} else {
-		for k, v := range files {
-			files[k] = runtime.GOROOT() + lddir + "/" + v
-		}
-	}
-	var r []io.Reader
-	for _, file := range files {
-		f, err := os.Open(file)
-		if err != nil {
-			log.Fatal(err)
-		}
-		r = append(r, f)
-		defer f.Close()
-	}
-	prog, err := cc.ReadMany(files, r)
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	if flag.NArg() != 0 {
+		flag.Usage()
+	} 
+	fixiomap()
+	prog := parse()
 	dep(prog)
 	var syms []*cc.Decl
 	for _, v := range start {
@@ -92,6 +84,27 @@ func main() {
 	}
 	subset := extract(syms...)
 	print(subset, "liblink")
+}
+
+// parse opens and parses all input files, and returns the result as
+// a *cc.Prog.
+func parse() *cc.Prog {
+	var r []io.Reader
+	var files []string
+	for name, _ := range iomap {
+		f, err := os.Open(name)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer f.Close()
+		r = append(r, f)
+		files = append(files, name)
+	}
+	prog, err := cc.ReadMany(files, r)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return prog
 }
 
 // print pretty prints fns (for which x.Type.Is(cc.Func) must be true)
