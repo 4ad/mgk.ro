@@ -378,8 +378,7 @@ func static(fns []*cc.Decl, syms map[string]map[*cc.Decl]bool) {
 				static = false
 			}
 		}
-		_, entry := start[v.Name]
-		if static && !entry {
+		if static && !start[v.Name] {
 			v.Storage = cc.Static
 		}
 	}
