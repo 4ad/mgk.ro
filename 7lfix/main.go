@@ -141,26 +141,6 @@ func parse() *cc.Prog {
 // print pretty prints fns (for which x.Type.Is(cc.Func) must be true)
 // into dir.
 func print(fns []*cc.Decl, dir string) {
-	files := map[string][]string{}
-out:
-	for _, v := range fns {
-		name, ok := iomap[v.Span.Start.File]
-		if !ok {
-			if strings.Contains(v.Span.Start.File, ".h") {
-				name = "l.h"
-			} else {
-				name = "zzz.c"
-			}
-		}
-		ex := files[name]
-		for _, n := range ex {
-			if path.Base(v.Span.Start.File) == n {
-				continue out
-			}
-		}
-		ex = append(ex, path.Base(v.Span.Start.File))
-		files[name] = ex
-	}
 	err := os.RemoveAll(dir)
 	if err != nil {
 		log.Fatal(err)
@@ -191,13 +171,15 @@ out:
 			defer f.Close()
 			file[name] = f
 			f.WriteString("//+build ignore\n\n")
-			f.WriteString("// From ")
-			for _, oname := range files[name] {
-				f.WriteString(oname)
-				f.WriteString(" ")
-			}
-			f.WriteString("\n\n")
 			if strings.Contains(v.Span.Start.File, ".c") {
+				f.WriteString("// From ")
+				for from, to := range iomap {
+					if name == to {
+						f.WriteString(path.Base(from))
+						f.WriteString(" ")
+					}
+				}
+				f.WriteString("\n\n")
 				f.WriteString(includes)
 				f.WriteString("\n")
 			}
