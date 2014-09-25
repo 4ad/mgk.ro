@@ -31,3 +31,4 @@ hoc
 syntax:regexp
 ^.*/core.[0-9]*$
 ^7lfix/l\.[0-9]+$
+^7lfix/d.*\.patch$

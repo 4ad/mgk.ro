@@ -10,8 +10,10 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
+	"os/exec"
 	"runtime"
 	"strings"
 
@@ -105,6 +107,7 @@ func main() {
 	print(subset, "l.0")
 	ren(prog, deps)
 	print(subset, "l.1")
+	diff()
 }
 
 // parse opens and parses all input files, and returns the result as
@@ -302,4 +305,13 @@ func ren(prog *cc.Prog, syms symbols) {
 		}
 		e.Text = rename[e.Text]
 	})
+}
+
+// diff generates diffs between transformations, so we can see what we
+// are doing.
+func diff() {
+	out, _ := exec.Command("diff", "-urp", "l.0", "l.1").Output()
+	if err := ioutil.WriteFile("d01.patch", out, 0665); err != nil {
+		log.Fatal(err)
+	}
 }
