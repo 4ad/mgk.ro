@@ -313,11 +313,11 @@ func ren(prog *cc.Prog, syms symbols) {
 // are doing.
 func diff() {
 	out, _ := exec.Command("diff", "-urp", "l.0", "l.1").Output()
-	if err := ioutil.WriteFile("d01.patch", out, 0665); err != nil {
+	if err := ioutil.WriteFile("d01.patch", out, 0664); err != nil {
 		log.Fatal(err)
 	}
 	out, _ = exec.Command("diff", "-urp", "l.1", "l.2").Output()
-	if err := ioutil.WriteFile("d12.patch", out, 0665); err != nil {
+	if err := ioutil.WriteFile("d12.patch", out, 0664); err != nil {
 		log.Fatal(err)
 	}
 }
