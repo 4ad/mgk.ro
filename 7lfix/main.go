@@ -322,6 +322,7 @@ func diff() {
 	}
 }
 
+// symfile creates a map between files and symbols used in a file.
 func symfile(prog *cc.Prog, all symbols) map[string]map[*cc.Decl]bool {
 	syms := map[string]map[*cc.Decl]bool{}
 	var curfunc *cc.Decl
