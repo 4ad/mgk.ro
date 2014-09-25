@@ -16,6 +16,7 @@ import (
 	"os/exec"
 	"path"
 	"runtime"
+	"sort"
 	"strings"
 
 	"code.google.com/p/rsc/cc"
@@ -173,8 +174,8 @@ func print(fns []*cc.Decl, dir string) {
 			f.WriteString("//+build ignore\n\n")
 			if strings.Contains(v.Span.Start.File, ".c") {
 				f.WriteString("// From ")
-				for from, to := range iomap {
-					if name == to {
+				for _, from := range filenames() {
+					if name == iomap[from] {
 						f.WriteString(path.Base(from))
 						f.WriteString(" ")
 					}
@@ -189,6 +190,15 @@ func print(fns []*cc.Decl, dir string) {
 		f.Write(pp.Bytes())
 		f.WriteString("\n\n")
 	}
+}
+
+func filenames() []string {
+	var files sort.StringSlice
+	for from, _ := range iomap {
+		files = append(files, from)
+	}
+	sort.Sort(sort.StringSlice(files))
+	return files
 }
 
 func dep(prog *cc.Prog, all symbols) symbols {
