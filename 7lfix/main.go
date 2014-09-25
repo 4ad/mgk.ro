@@ -55,6 +55,13 @@ var start = []string{
 	"listinit",
 }
 
+// symbols to be renamed.
+var rename = map[string]string{
+	"span":      "span7",
+	"chipfloat": "chipfloat7",
+	"listinit":  "listinit7",
+}
+
 var includes = `#include <u.h>
 #include <libc.h>
 #include <bio.h>
@@ -95,7 +102,9 @@ func main() {
 		syms = append(syms, deps.lookup(v))
 	}
 	subset := extract(syms...)
-	print(subset, "liblink")
+	print(subset, "l.0")
+	ren(prog, deps)
+	print(subset, "l.1")
 }
 
 // parse opens and parses all input files, and returns the result as
@@ -266,4 +275,31 @@ func extract(fns ...*cc.Decl) (subset []*cc.Decl) {
 		r(v)
 	}
 	return
+}
+
+// ren renames some symbols for liblink. This is a trivial operation and
+// it's easier to do by hand than to automate here. We do it here however
+// to learn more about rsc/cc and as a proof of concept.
+//
+// Rename is in place because it's a PITA otherwise.
+func ren(prog *cc.Prog, syms symbols) {
+	for s := range syms {
+		if _, ok := rename[s.Name]; !ok {
+			continue
+		}
+		s.Name = rename[s.Name]
+	}
+	cc.Preorder(prog, func(x cc.Syntax) {
+		e, ok :=  x.(*cc.Expr)
+		if !ok {
+			return
+		}
+		if e.Op != cc.Name {
+			return
+		}
+		if _, ok := rename[e.Text]; !ok {
+			return
+		}
+		e.Text = rename[e.Text]
+	})
 }
