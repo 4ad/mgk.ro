@@ -30,4 +30,4 @@ hoc
 
 syntax:regexp
 ^.*/core.[0-9]*$
-^9ll/liblink/
+^.+/liblink/

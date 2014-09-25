@@ -1,8 +1,8 @@
 /*
-9ll: refactor Plan 9 linkers
-	9ll [files ...]
+7lfix: refactor arm64 Plan 9 linker
+	7lfix [files ...]
 
-9ll helps refactor Plan 9 linkers into liblink form used by Go.
+7lfix helps refactor Plan 9 linkers into liblink form used by Go.
 */
 package main
 
@@ -19,6 +19,12 @@ import (
 	"code.google.com/p/rsc/cc"
 
 	_ "code.google.com/p/rbits/log"
+)
+
+const (
+	theChar = 7
+	ld = "7l"
+	lddir = "/src/cmd/" + ld
 )
 
 // missing *.h pstate.c main.c.
@@ -52,8 +58,8 @@ var deps = map[*cc.Decl][]*cc.Decl{}
 
 func main() {
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "usage: 9ll [files] ...\n")
-		fmt.Fprintf(os.Stderr, "\tdefault files are from $GOOROT/src/cmd/7l")
+		fmt.Fprintf(os.Stderr, "usage: 7lfix [files] ...\n")
+		fmt.Fprintf(os.Stderr, "\tdefault files are from $GOOROT" + lddir)
 		os.Exit(1)
 	}
 	flag.Parse()
@@ -62,7 +68,7 @@ func main() {
 		files = args
 	} else {
 		for k, v := range files {
-			files[k] = runtime.GOROOT() + "/src/cmd/7l/" + v
+			files[k] = runtime.GOROOT() + lddir + "/" + v
 		}
 	}
 	var r []io.Reader
@@ -99,7 +105,7 @@ func print(fns []*cc.Decl, dir string) {
 	}
 	file := make(map[string]*os.File)
 	for _, v := range fns {
-		if !strings.Contains(v.Span.String(), "7l") {
+		if !strings.Contains(v.Span.String(), ld) {
 			continue
 		}
 		f, ok := file[v.Span.Start.File]

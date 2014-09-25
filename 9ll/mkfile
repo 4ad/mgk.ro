@@ -1,5 +1,0 @@
-9ll:V:
-	go install
-
-test:V: 9ll
-	9ll

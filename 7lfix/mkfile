@@ -1,0 +1,5 @@
+7lfix:V:
+	go install
+
+test:V: 7lfix
+	7lfix
