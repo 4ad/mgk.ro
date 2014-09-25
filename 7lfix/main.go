@@ -54,7 +54,7 @@ var start = []string{
 	"noops",
 }
 
-var include = `#include <u.h>
+var includes = `#include <u.h>
 #include <libc.h>
 #include <bio.h>
 #include <link.h>
@@ -64,8 +64,8 @@ var include = `#include <u.h>
 // deps is the dependency graph between symbols.
 var deps = map[*cc.Decl][]*cc.Decl{}
 
-// fixiomap replaces unqualified names in iomap with full paths.
-func fixiomap() {
+// replace unqualified names in iomap with full paths.
+func init() {
 	for k, v := range iomap {
 		iomap[runtime.GOROOT() + lddir + "/" + k] = v
 		delete(iomap, k)
@@ -80,8 +80,7 @@ func main() {
 	}
 	if flag.NArg() != 0 {
 		flag.Usage()
-	} 
-	fixiomap()
+	}
 	prog := parse()
 	dep(prog)
 	var syms []*cc.Decl
@@ -147,7 +146,7 @@ func print(fns []*cc.Decl, dir string) {
 			file[name] = f
 			f.WriteString("//+build ignore\n\n")
 			if strings.Contains(v.Span.Start.File, ".c") {
-				f.WriteString(include)
+				f.WriteString(includes)
 				f.WriteString("\n")
 			}
 		}
