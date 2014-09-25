@@ -62,8 +62,14 @@ var includes = `#include <u.h>
 #include "../cmd/7l/7.out.h"
 `
 
+// symbols is a symbol table.
+type symbols map[*cc.Decl][]*cc.Decl
+
 // deps is the dependency graph between symbols.
-var deps = map[*cc.Decl][]*cc.Decl{}
+var deps = symbols{}
+
+// all are all the symbols, for quick access
+var all = symbols{}
 
 // replace unqualified names in iomap with full paths.
 func init() {
@@ -83,10 +89,11 @@ func main() {
 		flag.Usage()
 	}
 	prog := parse()
+	symtab(prog)
 	dep(prog)
 	var syms []*cc.Decl
 	for _, v := range start {
-		syms = append(syms, lookup(v))
+		syms = append(syms, deps.lookup(v))
 	}
 	subset := extract(syms...)
 	print(subset, "liblink")
@@ -172,9 +179,27 @@ func dep(prog *cc.Prog) {
 			}
 		case *cc.Expr:
 			switch x.Op {
-			// Potentially indirect function dependency by taking a
-			// function's address, which can be both &foo and foo.
-			case cc.Addr, cc.Name:
+			// Using a name for a function address.
+			case cc.Name:
+				if curfunc.Name == "listinit" {
+					fmt.Println("in", curfunc.Name, curfunc.GetSpan())
+					fmt.Println("	looking for", x.Text, x.GetSpan())
+				}
+				xfn := all.lookup(x.Text)
+				if xfn == nil {
+					return
+				}
+				for _, v := range deps[curfunc] {
+					if xfn == v {
+						return
+					}
+				}
+				deps[curfunc] = append(deps[curfunc], xfn)
+			// Take a function's address.
+			case cc.Addr:
+				if curfunc.Name == "listinit" {
+					fmt.Printf("in listinit, x=%#v\n", x)
+				}
 				if x.Left == nil || x.Left.XDecl == nil {
 					return
 				}
@@ -187,7 +212,6 @@ func dep(prog *cc.Prog) {
 					}
 				}
 				deps[curfunc] = append(deps[curfunc], x.Left.XDecl)
-				fmt.Println(x.Left.XDecl.Name)
 			// Direct function call.
 			case cc.Call:
 				for _, v := range deps[curfunc] {
@@ -201,8 +225,22 @@ func dep(prog *cc.Prog) {
 	})
 }
 
-func lookup(name string) *cc.Decl {
-	for s := range deps {
+// symtab populates the all symbol table.
+func symtab(prog *cc.Prog) {
+	cc.Preorder(prog, func(x cc.Syntax) {
+		d, ok := x.(*cc.Decl)
+		if !ok {
+			return
+		}
+		if !d.Type.Is(cc.Func) {
+			return
+		}
+		all[d] = nil
+	})
+}
+
+func (st symbols) lookup(name string) *cc.Decl {
+	for s := range st {
 		if s.Name == name {
 			return s
 		}
