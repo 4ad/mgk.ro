@@ -48,13 +48,13 @@ var iomap = map[string]string{
 }
 
 // symbols to start from
-var start = []string{
-	"span",
-	"asmout",
-	"chipfloat",
-	"follow",
-	"noops",
-	"listinit",
+var start = map[string]bool{
+	"span": true,
+	"asmout": true,
+	"chipfloat": true,
+	"follow": true,
+	"noops": true,
+	"listinit": true,
 }
 
 // symbols to be renamed.
@@ -77,6 +77,8 @@ type symbols map[*cc.Decl][]*cc.Decl
 var (
 	deps = symbols{} // deps is the dependency graph between wanted symbols
 	all  = symbols{} // all are all the symbols, for quick lookup
+
+	symsfile = map[string]map[*cc.Decl]bool{} // maps files to symbols used
 )
 
 // replace unqualified names in iomap with full paths.
@@ -100,13 +102,16 @@ func main() {
 	all = symtab(prog)
 	deps = dep(prog, all)
 	var syms []*cc.Decl
-	for _, v := range start {
-		syms = append(syms, deps.lookup(v))
+	for k := range start {
+		syms = append(syms, deps.lookup(k))
 	}
 	subset := extract(syms...)
 	print(subset, "l.0")
-	ren(prog, deps)
+	symsfile = symfile(prog, all)
+	static(subset, symsfile)
 	print(subset, "l.1")
+	ren(prog, deps)
+	print(subset, "l.2")
 	diff()
 }
 
@@ -205,9 +210,6 @@ func dep(prog *cc.Prog, all symbols) symbols {
 				deps[curfunc] = append(deps[curfunc], xfn)
 			// Take a function's address.
 			case cc.Addr:
-				if curfunc.Name == "listinit" {
-					fmt.Printf("in listinit, x=%#v\n", x)
-				}
 				if x.Left == nil || x.Left.XDecl == nil {
 					return
 				}
@@ -313,5 +315,72 @@ func diff() {
 	out, _ := exec.Command("diff", "-urp", "l.0", "l.1").Output()
 	if err := ioutil.WriteFile("d01.patch", out, 0665); err != nil {
 		log.Fatal(err)
+	}
+	out, _ = exec.Command("diff", "-urp", "l.1", "l.2").Output()
+	if err := ioutil.WriteFile("d12.patch", out, 0665); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func symfile(prog *cc.Prog, all symbols) map[string]map[*cc.Decl]bool {
+	syms := map[string]map[*cc.Decl]bool{}
+	var curfunc *cc.Decl
+	cc.Preorder(prog, func(x cc.Syntax) {
+		var xfn *cc.Decl
+		switch x := x.(type) {
+		case *cc.Decl:
+			if x.Type.Is(cc.Func) {
+				curfunc = x
+			}
+		case *cc.Expr:
+			switch x.Op {
+			// Using a name for a function address.
+			case cc.Name:
+				xfn = all.lookup(x.Text)
+			// Take a function's address.
+			case cc.Addr:
+				if x.Left == nil || x.Left.XDecl == nil {
+					return
+				}
+				if !x.Left.XDecl.Type.Is(cc.Func) {
+					return
+				}
+				xfn = x.Left.XDecl
+			// Direct function call.
+			case cc.Call:
+				xfn = x.Left.XDecl
+			}
+		}
+		if xfn == nil {
+			return
+		}
+		file := curfunc.Span.Start.File
+		if _, ok := syms[file]; !ok {
+			syms[file] = make(map[*cc.Decl]bool)
+		}
+		syms[file][xfn] = true
+	})
+	return syms
+}
+
+// static ensures that every symbol that can be static, is.
+//
+// It patches fns in place.
+func static(fns []*cc.Decl, syms map[string]map[*cc.Decl]bool) {
+	for _, v := range fns {
+		def := v.Span.Start.File
+		static := true
+		for file, s := range syms {
+			if file == def {
+				continue
+			}
+			if _, ok := s[v]; ok {
+				static = false
+			}
+		}
+		_, entry := start[v.Name]
+		if static && !entry {
+			v.Storage = cc.Static
+		}
 	}
 }
