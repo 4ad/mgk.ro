@@ -54,6 +54,13 @@ var start = []string{
 	"noops",
 }
 
+var include = `#include <u.h>
+#include <libc.h>
+#include <bio.h>
+#include <link.h>
+#include "../cmd/7l/7.out.h"
+`
+
 // deps is the dependency graph between symbols.
 var deps = map[*cc.Decl][]*cc.Decl{}
 
@@ -139,6 +146,10 @@ func print(fns []*cc.Decl, dir string) {
 			defer f.Close()
 			file[name] = f
 			f.WriteString("//+build ignore\n\n")
+			if strings.Contains(v.Span.Start.File, ".c") {
+				f.WriteString(include)
+				f.WriteString("\n")
+			}
 		}
 		var pp cc.Printer
 		pp.Print(v)
