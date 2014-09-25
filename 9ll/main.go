@@ -80,10 +80,11 @@ func main() {
 	}
 
 	depGraph(prog)
-	var subset []*cc.Decl
+	var syms []*cc.Decl
 	for _, v := range start {
-		subset = append(subset, extract(lookup(v))...)
+		syms = append(syms, lookup(v))
 	}
+	subset := extract(syms...)
 
 	if os.RemoveAll("liblink") != nil {
 		log.Fatal(err)
@@ -165,9 +166,9 @@ func lookup(name string) *cc.Decl {
 	return nil
 }
 
-// extract returns the recursive list of functions called by f
-// x.Type.Is(cc.Func) must be true for f, and will be true for subset.
-func extract(f *cc.Decl) (subset []*cc.Decl) {
+// extract returns the recursive list of functions called by the fns
+// x.Type.Is(cc.Func) must be true for fns, and will be true for subset.
+func extract(fns ...*cc.Decl) (subset []*cc.Decl) {
 	var r func(f *cc.Decl)
 	r = func(f *cc.Decl) {
 		for _, s := range subset {
@@ -180,6 +181,8 @@ func extract(f *cc.Decl) (subset []*cc.Decl) {
 			r(d)
 		}
 	}
-	r(f)
+	for _, v := range fns {
+		r(v)
+	}
 	return
 }
