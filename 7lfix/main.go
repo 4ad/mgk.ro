@@ -30,19 +30,19 @@ const (
 // Unknown files go to zzz.c.
 // missing *.h pstate.c main.c.
 var iomap = map[string]string{
-	"dyn.c":    "xxx.c",
+	"dyn.c":    "asm7.c",
 	"sub.c":    "xxx.c",
 	"mod.c":    "xxx.c",
-	"list.c":   "xxx.c",
-	"noop.c":   "xxx.c",
+	"list.c":   "list7.c",
+	"noop.c":   "obj7.c",
 	"elf.c":    "xxx.c",
-	"pass.c":   "xxx.c",
+	"pass.c":   "obj7.c",
 	"pobj.c":   "xxx.c",
-	"asm.c":    "xxx.c",
-	"optab.c":  "xxx.c",
-	"obj.c":    "xxx.c",
-	"span.c":   "xxx.c",
-	"asmout.c": "xxx.c",
+	"asm.c":    "asm7.c",
+	"optab.c":  "asm7.c",
+	"obj.c":    "obj7.c",
+	"span.c":   "asm7.c",
+	"asmout.c": "asm7.c",
 }
 
 // symbols to start from
