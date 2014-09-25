@@ -12,7 +12,6 @@ import (
 	"io"
 	"log"
 	"os"
-	"path"
 	"runtime"
 	"strings"
 
@@ -28,7 +27,7 @@ const (
 )
 
 // iomap maps each input file to its corresponding output file.
-// Unknown files go to xxx.c.
+// Unknown files go to zzz.c.
 // missing *.h pstate.c main.c.
 var iomap = map[string]string{
 	"dyn.c":    "xxx.c",
@@ -110,7 +109,8 @@ func parse() *cc.Prog {
 // print pretty prints fns (for which x.Type.Is(cc.Func) must be true)
 // into dir.
 func print(fns []*cc.Decl, dir string) {
-	if err := os.RemoveAll(dir); err != nil {
+	err := os.RemoveAll(dir)
+	if err != nil {
 		log.Fatal(err)
 	}
 	if err := os.MkdirAll(dir, 0775); err != nil {
@@ -121,14 +121,23 @@ func print(fns []*cc.Decl, dir string) {
 		if !strings.Contains(v.Span.String(), ld) {
 			continue
 		}
-		f, ok := file[v.Span.Start.File]
+		name, ok := iomap[v.Span.Start.File]
 		if !ok {
-			f, err := os.Create(dir + "/" + path.Base(v.Span.Start.File))
+			if strings.Contains(v.Span.Start.File, ".h") {
+				name = "l.h"
+			} else {
+				name = "zzz.c"
+			}
+		}
+		f, ok := file[name]
+		if !ok {
+			// fmt.Printf("%v:	%v\n", dir + "/" + name, file)
+			f, err := os.Create(dir + "/" + name)
 			if err != nil {
 				log.Fatal(err)
 			}
 			defer f.Close()
-			file[v.Span.Start.File] = f
+			file[name] = f
 			f.WriteString("//+build ignore\n\n")
 		}
 		var pp cc.Printer
