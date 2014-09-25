@@ -85,21 +85,26 @@ func main() {
 		syms = append(syms, lookup(v))
 	}
 	subset := extract(syms...)
+	print(subset, "liblink")
+}
 
-	if os.RemoveAll("liblink") != nil {
+// print pretty prints fns (for which x.Type.Is(cc.Func) must be true)
+// into dir.
+func print(fns []*cc.Decl, dir string) {
+	if err := os.RemoveAll(dir); err != nil {
 		log.Fatal(err)
 	}
-	if os.MkdirAll("liblink", 0775) != nil {
+	if err := os.MkdirAll(dir, 0775); err != nil {
 		log.Fatal(err)
 	}
 	file := make(map[string]*os.File)
-	for _, v := range subset {
+	for _, v := range fns {
 		if !strings.Contains(v.Span.String(), "7l") {
 			continue
 		}
 		f, ok := file[v.Span.Start.File]
 		if !ok {
-			f, err = os.Create("liblink/" + path.Base(v.Span.Start.File))
+			f, err := os.Create(dir + "/" + path.Base(v.Span.Start.File))
 			if err != nil {
 				log.Fatal(err)
 			}
