@@ -348,10 +348,10 @@ func (prog *prog) trim(subset symset) {
 	}
 }
 
-// Print pretty prints prog, writing the output into dir. FIle names
+// Print pretty prints prog, writing the output into dir. File names
 // are taken from filemap.
 //
-// BUG(aram): this function can correctly print only functions, 
+// BUG(aram): this function can print correctly only functions, 
 // not global variable declarations.
 func (prog *prog) print(filemap map[string]string, dir string) {
 	err := os.RemoveAll(dir)
