@@ -148,7 +148,7 @@ func NewProg(ccprog *cc.Prog) *prog {
 	prog := &prog{Prog: ccprog}
 	var curfunc *cc.Decl
 
-	// fill global and symbol table
+	// compute symlist, symmap, symtab.
 	prog.symmap = make(symset)
 	prog.symtab = make(map[string]*cc.Decl)
 	prog.forward = make(dependecies)
@@ -180,7 +180,7 @@ func NewProg(ccprog *cc.Prog) *prog {
 	}
 	cc.Walk(prog.Prog, before, after)
 
-	// calculate dependencies
+	// compute dependencies.
 	before = func(x cc.Syntax) {
 		switch x := x.(type) {
 		case *cc.Decl:
@@ -219,7 +219,7 @@ func NewProg(ccprog *cc.Prog) *prog {
 	}
 	cc.Walk(prog.Prog, before, after)
 
-	// calculate prog.filetab
+	// compute prog.filetab.
 	prog.filetab = make(map[string]symset)
 	for _, v := range prog.symlist {
 		file := v.Span.Start.File
