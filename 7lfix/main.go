@@ -76,6 +76,7 @@ var includes = `#include <u.h>
 
 // symset is a set of symols.
 type symset map[*cc.Decl]bool
+
 // dependecies expresses forward or reverse dependencies between symbols.
 type dependecies map[*cc.Decl]symset
 
@@ -85,7 +86,7 @@ type prog struct {
 
 	// global declarations, need slice for deterministic range and map
 	// for quick lookup.
-	symlist []*cc.Decl          
+	symlist []*cc.Decl
 	symmap  symset
 
 	symtab  map[string]*cc.Decl // symbol table
@@ -125,36 +126,39 @@ func main() {
 
 	prog := NewProg(parse())
 	prog.extract(start)
-	prog.print(iomap, "l.3")
-	
-/*
-	all = symtab(prog)
-	deps = dep(prog, all)
-	globals = glob(prog, all)
-
-
-	foo := NewProg(prog)
-	print(foo.symlist, "zzz")
-
-	// extract what we need.
-	var syms []*cc.Decl
-	for k := range start {
-		syms = append(syms, deps.lookup(k))
-	}
-	subset := extract(syms...)
-	print(subset, "l.0")
-
-	// make everything static.
-	symsfile = symfile(prog, all)
-	static(subset, symsfile)
-	print(subset, "l.1")
-
-	// rename symbols.
-	ren(prog, deps)
-	print(subset, "l.2")
-
+	prog.print(iomap, "l.0")
+	prog.static(start, iomap)
+	prog.print(iomap, "l.1")
 	diff()
-*/
+
+	/*
+		all = symtab(prog)
+		deps = dep(prog, all)
+		globals = glob(prog, all)
+
+
+		foo := NewProg(prog)
+		print(foo.symlist, "zzz")
+
+		// extract what we need.
+		var syms []*cc.Decl
+		for k := range start {
+			syms = append(syms, deps.lookup(k))
+		}
+		subset := extract(syms...)
+		print(subset, "l.0")
+
+		// make everything static.
+		symsfile = symfile(prog, all)
+		static(subset, symsfile)
+		print(subset, "l.1")
+
+		// rename symbols.
+		ren(prog, deps)
+		print(subset, "l.2")
+
+
+	*/
 }
 
 // parse opens and parses all input files, and returns the result as
@@ -212,7 +216,7 @@ func NewProg(ccprog *cc.Prog) *prog {
 			}
 		}
 	}
-	cc.Walk(prog.Prog,before, after)
+	cc.Walk(prog.Prog, before, after)
 
 	// calculate dependencies
 	before = func(x cc.Syntax) {
@@ -393,59 +397,6 @@ func (prog *prog) print(iomap map[string]string, dir string) {
 
 }
 
-// print pretty prints fns (for which x.Type.Is(cc.Func) must be true)
-// into dir.
-func print(fns []*cc.Decl, dir string) {
-	err := os.RemoveAll(dir)
-	if err != nil {
-		log.Fatal(err)
-	}
-	if err := os.MkdirAll(dir, 0775); err != nil {
-		log.Fatal(err)
-	}
-	file := make(map[string]*os.File)
-	for _, v := range fns {
-		if !strings.Contains(v.Span.String(), ld) {
-			continue
-		}
-		name, ok := iomap[v.Span.Start.File]
-		if !ok {
-			if strings.Contains(v.Span.Start.File, ".h") {
-				name = "l.h"
-			} else {
-				name = "zzz.c"
-			}
-		}
-		f, ok := file[name]
-		if !ok {
-			// fmt.Printf("%v:	%v\n", dir + "/" + name, file)
-			f, err = os.Create(dir + "/" + name)
-			if err != nil {
-				log.Fatal(err)
-			}
-			defer f.Close()
-			file[name] = f
-			f.WriteString("//+build ignore\n\n")
-			if strings.Contains(v.Span.Start.File, ".c") {
-				f.WriteString("// From ")
-				for _, from := range filenames() {
-					if name == iomap[from] {
-						f.WriteString(path.Base(from))
-						f.WriteString(" ")
-					}
-				}
-				f.WriteString("\n\n")
-				f.WriteString(includes)
-				f.WriteString("\n")
-			}
-		}
-		var pp cc.Printer
-		pp.Print(v)
-		f.Write(pp.Bytes())
-		f.WriteString("\n\n")
-	}
-}
-
 func filenames() []string {
 	var files sort.StringSlice
 	for from, _ := range iomap {
@@ -489,29 +440,27 @@ func diff() {
 	if err := ioutil.WriteFile("d01.patch", out, 0664); err != nil {
 		log.Fatal(err)
 	}
-	out, _ = exec.Command("diff", "-urp", "l.1", "l.2").Output()
-	if err := ioutil.WriteFile("d12.patch", out, 0664); err != nil {
-		log.Fatal(err)
-	}
+	//	out, _ = exec.Command("diff", "-urp", "l.1", "l.2").Output()
+	//	if err := ioutil.WriteFile("d12.patch", out, 0664); err != nil {
+	//		log.Fatal(err)
+	//	}
 }
 
 // static ensures that every symbol that can be static, is.
-//
-// It patches fns in place.
-func static(fns []*cc.Decl, syms map[string]map[*cc.Decl]bool) {
-	for _, v := range fns {
-		def := iomap[v.Span.Start.File]
+func (prog *prog) static(start map[string]bool, iomap map[string]string) {
+	for _, sym := range prog.symlist {
+		dfile := iomap[sym.Span.Start.File]
 		static := true
-		for file, s := range syms {
-			if iomap[file] == def {
+		for file, syms := range prog.filetab {
+			if iomap[file] == dfile {
 				continue
 			}
-			if _, ok := s[v]; ok {
+			if _, ok := syms[sym]; ok {
 				static = false
 			}
 		}
-		if static && !start[v.Name] {
-			v.Storage = cc.Static
+		if static && !start[sym.Name] {
+			sym.Storage = cc.Static
 		}
 	}
 }
