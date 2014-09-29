@@ -484,7 +484,17 @@ func (prog *prog) rename(newnames map[string]string) {
 // addctxt adds Link *ctxt parameters to functions and rewrites code to use
 // the parameter.
 func (prog *prog) addctxt(lprog *linkprog) {
+	var funcs = make(symset) // functions requiring Link *ctxt parameter
+	// fix expressions involving Link *ctxt
+	var curfunc *cc.Decl
 	cc.Preorder(prog.Prog, func(x cc.Syntax) {
+		decl, ok := x.(*cc.Decl)
+		if ok {
+			if decl.Type.Is(cc.Func) && decl.Body != nil {
+				curfunc = decl
+			}
+			return
+		}
 		expr, ok := x.(*cc.Expr)
 		if !ok {
 			return
@@ -497,7 +507,8 @@ func (prog *prog) addctxt(lprog *linkprog) {
 			}
 			if lprog.fields[sym.Name] != nil {
 				// hack: we only replace the name, not the expression.
-				expr.Text = "ctxt->"+expr.Text
+				expr.Text = "ctxt->" + expr.Text
+				funcs[curfunc] = true
 			}
 		case cc.Addr, cc.Call:
 			if expr.Left == nil || expr.Left.XDecl == nil {
@@ -508,8 +519,41 @@ func (prog *prog) addctxt(lprog *linkprog) {
 			}
 			if lprog.fields[expr.Left.XDecl.Name] != nil {
 				// hack: we only replace the name, not the expression.
-				expr.Text = "ctxt->"+expr.Text
+				expr.Text = "ctxt->" + expr.Text
+				funcs[curfunc] = true
 			}
 		}
 	})
+	// if a function requires a Link *ctxt, its callees require it too.
+	var r func(sym *cc.Decl)
+	r = func(sym *cc.Decl) {
+		if _, ok := funcs[sym]; ok {
+			return
+		}
+		funcs[sym] = true
+		for sym := range prog.reverse[sym] {
+			r(sym)
+		}
+	}
+	for sym := range funcs {
+		r(sym)
+	}
+	// fix definitions of functions now Link *ctxt
+	for sym := range funcs {
+		arg0 := &cc.Decl{
+			Name: "ctxt",
+			Type: &cc.Type{
+				Kind: cc.Ptr,
+				Base: &cc.Type{
+					Name: "Link",
+					Kind: cc.TypedefType, // not even a lie
+				},
+			},
+		}
+		if sym.Type.Decls[0].Type.Is(cc.Void) {
+			sym.Type.Decls = []*cc.Decl{arg0}
+			continue
+		}
+		sym.Type.Decls = append([]*cc.Decl{arg0}, sym.Type.Decls...)
+	}
 }
