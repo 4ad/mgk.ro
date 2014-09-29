@@ -78,8 +78,9 @@ var includes = `#include <u.h>
 type symbols map[*cc.Decl][]*cc.Decl
 
 var (
-	deps = symbols{} // deps is the dependency graph between symbols
-	all  = symbols{} // all are all the symbols, including unwanted
+	deps    = symbols{} // deps is the dependency graph between symbols
+	all     = symbols{} // all are all the symbols, including unwanted
+	globals = symbols{} // globals mapping to functions that use them
 
 	symsfile = map[string]map[*cc.Decl]bool{} // maps files to symbols
 )
@@ -101,20 +102,29 @@ func main() {
 	if flag.NArg() != 0 {
 		flag.Usage()
 	}
+
 	prog := parse()
 	all = symtab(prog)
 	deps = dep(prog, all)
+	globals = glob(prog, all)
+
+	// extract what we need.
 	var syms []*cc.Decl
 	for k := range start {
 		syms = append(syms, deps.lookup(k))
 	}
 	subset := extract(syms...)
 	print(subset, "l.0")
+
+	// make everything static.
 	symsfile = symfile(prog, all)
 	static(subset, symsfile)
 	print(subset, "l.1")
+
+	// rename symbols.
 	ren(prog, deps)
 	print(subset, "l.2")
+
 	diff()
 }
 
@@ -403,4 +413,35 @@ func static(fns []*cc.Decl, syms map[string]map[*cc.Decl]bool) {
 			v.Storage = cc.Static
 		}
 	}
+}
+
+func glob(prog *cc.Prog, all symbols) symbols {
+	var globals = symbols{}
+	var curfunc *cc.Decl
+	var before = func(x cc.Syntax) {
+		switch x := x.(type) {
+		case *cc.Decl:
+			if x.Type.Is(cc.Func) {
+				curfunc = x
+				return
+			}
+			if curfunc != nil {
+				return // only need global declarations
+			}
+			// BUG(aram): This catches all type definitions too, not
+			// only variable declarations.
+			globals[x] = nil
+		}
+	}
+	var after = func(x cc.Syntax) {
+		switch x := x.(type) {
+		case *cc.Decl:
+			if x.Type.Is(cc.Func) {
+				curfunc = nil
+				return
+			}
+		}
+	}
+	cc.Walk(prog, before, after)
+	return globals
 }
