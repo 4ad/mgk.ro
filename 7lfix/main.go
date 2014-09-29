@@ -429,6 +429,10 @@ func diff() {
 	if err := ioutil.WriteFile("d23.patch", out, 0664); err != nil {
 		log.Fatal(err)
 	}
+	out, _ = exec.Command("diff", "-urp", "l.0", "l.3").Output()
+	if err := ioutil.WriteFile("d03.patch", out, 0664); err != nil {
+		log.Fatal(err)
+	}
 }
 
 // static ensures that every symbol that can be static, is.

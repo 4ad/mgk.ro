@@ -3,3 +3,11 @@
 
 test:V: 7lfix
 	7lfix
+
+cl:V: test
+	foo=`mktemp -d`
+	cp l.0/* $foo
+	bash -c "cd $foo && hg init && hg add && hg commit -m zero"
+	cp l.3/* $foo
+	bash -c "cd $foo && upload.py -m 7lfixtest"
+	rm -rf $foo
