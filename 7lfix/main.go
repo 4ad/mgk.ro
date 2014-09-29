@@ -95,17 +95,6 @@ type prog struct {
 	filetab map[string]symset   // maps files to symbols
 }
 
-// symbols is a symbol table.
-type symbols map[*cc.Decl][]*cc.Decl
-
-var (
-	deps    = symbols{} // deps is the dependency graph between symbols
-	all     = symbols{} // all are all the symbols, including unwanted
-	globals = symbols{} // globals mapping to functions that use them
-
-	symsfile = map[string]map[*cc.Decl]bool{} // maps files to symbols
-)
-
 // replace unqualified names in iomap with full paths.
 func init() {
 	for k, v := range iomap {
@@ -129,36 +118,9 @@ func main() {
 	prog.print(iomap, "l.0")
 	prog.static(start, iomap)
 	prog.print(iomap, "l.1")
+	prog.rename(rename)
+	prog.print(iomap, "l.2")
 	diff()
-
-	/*
-		all = symtab(prog)
-		deps = dep(prog, all)
-		globals = glob(prog, all)
-
-
-		foo := NewProg(prog)
-		print(foo.symlist, "zzz")
-
-		// extract what we need.
-		var syms []*cc.Decl
-		for k := range start {
-			syms = append(syms, deps.lookup(k))
-		}
-		subset := extract(syms...)
-		print(subset, "l.0")
-
-		// make everything static.
-		symsfile = symfile(prog, all)
-		static(subset, symsfile)
-		print(subset, "l.1")
-
-		// rename symbols.
-		ren(prog, deps)
-		print(subset, "l.2")
-
-
-	*/
 }
 
 // parse opens and parses all input files, and returns the result as
@@ -406,33 +368,6 @@ func filenames() []string {
 	return files
 }
 
-// ren renames some symbols for liblink. This is a trivial operation and
-// it's easier to do by hand than to automate here. We do it here however
-// to learn more about rsc/cc and as a proof of concept.
-//
-// Rename is in place because it's a PITA otherwise.
-func ren(prog *cc.Prog, syms symbols) {
-	for s := range syms {
-		if _, ok := rename[s.Name]; !ok {
-			continue
-		}
-		s.Name = rename[s.Name]
-	}
-	cc.Preorder(prog, func(x cc.Syntax) {
-		e, ok := x.(*cc.Expr)
-		if !ok {
-			return
-		}
-		if e.Op != cc.Name {
-			return
-		}
-		if _, ok := rename[e.Text]; !ok {
-			return
-		}
-		e.Text = rename[e.Text]
-	})
-}
-
 // diff generates diffs between transformations, so we can see what we
 // are doing.
 func diff() {
@@ -440,10 +375,10 @@ func diff() {
 	if err := ioutil.WriteFile("d01.patch", out, 0664); err != nil {
 		log.Fatal(err)
 	}
-	//	out, _ = exec.Command("diff", "-urp", "l.1", "l.2").Output()
-	//	if err := ioutil.WriteFile("d12.patch", out, 0664); err != nil {
-	//		log.Fatal(err)
-	//	}
+	out, _ = exec.Command("diff", "-urp", "l.1", "l.2").Output()
+	if err := ioutil.WriteFile("d12.patch", out, 0664); err != nil {
+		log.Fatal(err)
+	}
 }
 
 // static ensures that every symbol that can be static, is.
@@ -463,4 +398,27 @@ func (prog *prog) static(start map[string]bool, iomap map[string]string) {
 			sym.Storage = cc.Static
 		}
 	}
+}
+
+// rename renames prog symbols according to newnames.
+func (prog *prog) rename(newnames map[string]string) {
+	for _, sym := range prog.symlist {
+		if _, ok := newnames[sym.Name]; !ok {
+			continue
+		}
+		sym.Name = newnames[sym.Name]
+	}
+	cc.Preorder(prog.Prog, func(x cc.Syntax) {
+		expr, ok := x.(*cc.Expr)
+		if !ok {
+			return
+		}
+		if expr.Op != cc.Name {
+			return
+		}
+		if _, ok := newnames[expr.Text]; !ok {
+			return
+		}
+		expr.Text = newnames[expr.Text]
+	})
 }
