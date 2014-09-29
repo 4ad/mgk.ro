@@ -123,12 +123,16 @@ func main() {
 		flag.Usage()
 	}
 
-	prog := parse()
+	prog := NewProg(parse())
+	prog.extract(start)
+	prog.print(iomap, "l.3")
+	
+/*
 	all = symtab(prog)
 	deps = dep(prog, all)
 	globals = glob(prog, all)
 
-/*
+
 	foo := NewProg(prog)
 	print(foo.symlist, "zzz")
 
@@ -259,6 +263,134 @@ func NewProg(ccprog *cc.Prog) *prog {
 		prog.filetab[file][v] = true
 	}
 	return prog
+}
+
+// extract trims prog keeping only the symbols referenced by the start
+// functions.
+func (prog *prog) extract(start map[string]bool) {
+	subset := make(symset)
+	var r func(sym *cc.Decl)
+	r = func(sym *cc.Decl) {
+		if _, ok := subset[sym]; ok {
+			return
+		}
+		subset[sym] = true
+		for sym := range prog.forward[sym] {
+			r(sym)
+		}
+	}
+	for name := range start {
+		sym, ok := prog.symtab[name]
+		if !ok {
+			log.Fatal("symbol %q not found", name)
+		}
+		r(sym)
+	}
+	prog.trim(subset)
+}
+
+// trim trims prog keeping only symbols in subset.
+func (prog *prog) trim(subset symset) {
+	var newsymlist []*cc.Decl
+	newsymmap := make(symset)
+	for _, sym := range prog.symlist {
+		if _, ok := subset[sym]; !ok {
+			continue
+		}
+		newsymlist = append(newsymlist, sym)
+		newsymmap[sym] = true
+	}
+	prog.symlist = newsymlist
+	prog.symmap = newsymmap
+	for name, sym := range prog.symtab {
+		if _, ok := subset[sym]; ok {
+			continue
+		}
+		delete(prog.symtab, name)
+	}
+	for sym := range prog.forward {
+		if _, ok := subset[sym]; ok {
+			continue
+		}
+		delete(prog.forward, sym)
+	}
+	for sym, syms := range prog.reverse {
+		if _, ok := subset[sym]; !ok {
+			delete(prog.reverse, sym)
+			continue
+		}
+		for sym := range syms {
+			if _, ok := subset[sym]; ok {
+				continue
+			}
+			delete(syms, sym)
+		}
+	}
+	for _, syms := range prog.filetab {
+		for sym := range syms {
+			if _, ok := subset[sym]; ok {
+				continue
+			}
+			delete(syms, sym)
+		}
+	}
+}
+
+// Print pretty prints prog writing the output into dir. FIle names are
+// taked from iomap.
+//
+// BUG(aram): this correctly  prints only functions, not global variable
+// declarations.
+func (prog *prog) print(iomap map[string]string, dir string) {
+	err := os.RemoveAll(dir)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := os.MkdirAll(dir, 0775); err != nil {
+		log.Fatal(err)
+	}
+	file := make(map[string]*os.File)
+	for _, v := range prog.symlist {
+		if !strings.Contains(v.Span.String(), ld) {
+			continue
+		}
+		name, ok := iomap[v.Span.Start.File]
+		if !ok {
+			if strings.Contains(v.Span.Start.File, ".h") {
+				name = "l.h"
+			} else {
+				name = "zzz.c"
+			}
+		}
+		f, ok := file[name]
+		if !ok {
+			// fmt.Printf("%v:	%v\n", dir + "/" + name, file)
+			f, err = os.Create(dir + "/" + name)
+			if err != nil {
+				log.Fatal(err)
+			}
+			defer f.Close()
+			file[name] = f
+			f.WriteString("//+build ignore\n\n")
+			if strings.Contains(v.Span.Start.File, ".c") {
+				f.WriteString("// From ")
+				for _, from := range filenames() {
+					if name == iomap[from] {
+						f.WriteString(path.Base(from))
+						f.WriteString(" ")
+					}
+				}
+				f.WriteString("\n\n")
+				f.WriteString(includes)
+				f.WriteString("\n")
+			}
+		}
+		var pp cc.Printer
+		pp.Print(v)
+		f.Write(pp.Bytes())
+		f.WriteString("\n\n")
+	}
+
 }
 
 // print pretty prints fns (for which x.Type.Is(cc.Func) must be true)
