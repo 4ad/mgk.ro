@@ -556,5 +556,25 @@ func (prog *prog) addctxt(lprog *linkprog) {
 		}
 		sym.Type.Decls = append([]*cc.Decl{arg0}, sym.Type.Decls...)
 	}
-	// TODO(aram): patch call sites of every function too.
+	// patch call sites of every function too.
+	cc.Preorder(prog.Prog, func(x cc.Syntax) {
+		expr, ok := x.(*cc.Expr)
+		if !ok {
+			return
+		}
+		if expr.Op != cc.Call {
+			return
+		}
+		if _, ok := prog.symmap[expr.Left.XDecl]; !ok {
+			return
+		}
+		if _, ok := funcs[expr.Left.XDecl]; !ok {
+			return
+		}
+		expr0 := &cc.Expr{
+			Op: cc.Name,
+			Text: "ctxt",
+		}
+		expr.List = append([]*cc.Expr{expr0}, expr.List...)
+	})
 }
