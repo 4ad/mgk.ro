@@ -556,4 +556,5 @@ func (prog *prog) addctxt(lprog *linkprog) {
 		}
 		sym.Type.Decls = append([]*cc.Decl{arg0}, sym.Type.Decls...)
 	}
+	// TODO(aram): patch call sites of every function too.
 }
