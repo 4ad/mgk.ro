@@ -74,6 +74,26 @@ var includes = `#include <u.h>
 #include "../cmd/7l/7.out.h"
 `
 
+// symset is a set of symols.
+type symset map[*cc.Decl]bool
+// dependecies expresses forward or reverse dependencies between symbols.
+type dependecies map[*cc.Decl]symset
+
+// A prog is a program that need to be refactored.
+type prog struct {
+	*cc.Prog
+
+	// global declarations, need slice for deterministic range and map
+	// for quick lookup.
+	symlist []*cc.Decl          
+	symmap  symset
+
+	symtab  map[string]*cc.Decl // symbol table
+	forward dependecies         // a symbol uses other symbols
+	reverse dependecies         // a symbol is used by other symbols
+	filetab map[string]symset   // maps files to symbols
+}
+
 // symbols is a symbol table.
 type symbols map[*cc.Decl][]*cc.Decl
 
@@ -108,6 +128,10 @@ func main() {
 	deps = dep(prog, all)
 	globals = glob(prog, all)
 
+/*
+	foo := NewProg(prog)
+	print(foo.symlist, "zzz")
+
 	// extract what we need.
 	var syms []*cc.Decl
 	for k := range start {
@@ -126,6 +150,7 @@ func main() {
 	print(subset, "l.2")
 
 	diff()
+*/
 }
 
 // parse opens and parses all input files, and returns the result as
@@ -145,6 +170,93 @@ func parse() *cc.Prog {
 	prog, err := cc.ReadMany(files, r)
 	if err != nil {
 		log.Fatal(err)
+	}
+	return prog
+}
+
+func NewProg(ccprog *cc.Prog) *prog {
+	prog := &prog{Prog: ccprog}
+	var curfunc *cc.Decl
+
+	// fill global and symbol table
+	prog.symmap = make(symset)
+	prog.symtab = make(map[string]*cc.Decl)
+	prog.forward = make(dependecies)
+	prog.reverse = make(dependecies)
+	var before = func(x cc.Syntax) {
+		switch x := x.(type) {
+		case *cc.Decl:
+			if x.XOuter == nil && curfunc == nil {
+				prog.forward[x] = make(symset)
+				prog.reverse[x] = make(symset)
+				prog.symlist = append(prog.symlist, x)
+				prog.symmap[x] = true
+				prog.symtab[x.Name] = x
+			}
+			if x.Type.Is(cc.Func) {
+				curfunc = x
+				return
+			}
+		}
+	}
+	var after = func(x cc.Syntax) {
+		switch x := x.(type) {
+		case *cc.Decl:
+			if x.Type.Is(cc.Func) {
+				curfunc = nil
+				return
+			}
+		}
+	}
+	cc.Walk(prog.Prog,before, after)
+
+	// calculate dependencies
+	before = func(x cc.Syntax) {
+		switch x := x.(type) {
+		case *cc.Decl:
+			if curfunc == nil {
+				if x.Type.Is(cc.Func) && x.Body != nil {
+					curfunc = x
+					return
+				}
+			}
+		case *cc.Expr:
+			switch x.Op {
+			case cc.Name:
+				if curfunc == nil {
+					return
+				}
+				sym, ok := prog.symtab[x.Text]
+				if !ok {
+					return
+				}
+				prog.forward[curfunc][sym] = true
+				prog.reverse[sym][curfunc] = true
+			case cc.Addr, cc.Call:
+				if curfunc == nil {
+					return
+				}
+				if x.Left == nil || x.Left.XDecl == nil {
+					return
+				}
+				if _, ok := prog.symmap[x.Left.XDecl]; !ok {
+					return // not a global symbol
+				}
+				prog.forward[curfunc][x.Left.XDecl] = true
+				prog.reverse[x.Left.XDecl][curfunc] = true
+			}
+		}
+	}
+	cc.Walk(prog.Prog, before, after)
+
+	// calculate prog.filetab
+	prog.filetab = make(map[string]symset)
+	for _, v := range prog.symlist {
+		file := v.Span.Start.File
+		if prog.filetab[file] == nil {
+			prog.filetab[file] = make(symset)
+		}
+		prog.filetab[file][v] = true
 	}
 	return prog
 }
