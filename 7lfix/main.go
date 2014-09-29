@@ -408,6 +408,14 @@ func (prog *prog) rename(newnames map[string]string) {
 		}
 		sym.Name = newnames[sym.Name]
 	}
+	for old, new := range newnames {
+		sym, ok := prog.symtab[old]
+		if !ok {
+			continue
+		}
+		delete(prog.symtab, old)
+		prog.symtab[new] = sym
+	}
 	cc.Preorder(prog.Prog, func(x cc.Syntax) {
 		expr, ok := x.(*cc.Expr)
 		if !ok {
