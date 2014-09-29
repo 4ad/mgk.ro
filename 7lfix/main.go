@@ -74,10 +74,10 @@ var includes = `#include <u.h>
 #include "../cmd/7l/7.out.h"
 `
 
-var link = strings.NewReader(`#include <u.h>
+var linksrc = `#include <u.h>
 #include <libc.h>
 #include <bio.h>
-#include <link.h>`)
+#include <link.h>`
 
 // symset is a set of symols.
 type symset map[*cc.Decl]bool
@@ -100,6 +100,12 @@ type prog struct {
 	filetab map[string]symset   // maps files to symbols
 }
 
+// Linkprog is a parsed link.h with a symbol table.
+type linkprog struct {
+	*cc.Prog
+	fields map[string]*cc.Decl // symbol table
+}
+
 // replace unqualified names in filemap with full paths.
 func init() {
 	for k, v := range filemap {
@@ -119,13 +125,7 @@ func main() {
 	}
 
 	prog := NewProg(parse(filemap))
-	p, err := cc.Read("virtual", link)
-	if err != nil {
-		log.Fatal(err)
-	}
-	lprog := NewProg(p)
-	ldecls := LinkDecls(lprog)
-	_ = ldecls
+	lprog := NewLinkprog(linksrc)
 
 	prog.extract(start)
 	prog.print(filemap, "l.0")
@@ -133,6 +133,8 @@ func main() {
 	prog.print(filemap, "l.1")
 	prog.rename(rename)
 	prog.print(filemap, "l.2")
+	prog.addctxt(lprog)
+	prog.print(filemap, "l.3")
 	diff()
 }
 
@@ -155,6 +157,37 @@ func parse(filemap map[string]string) *cc.Prog {
 		log.Fatal(err)
 	}
 	return prog
+}
+
+func NewLinkprog(src string) *linkprog {
+	p, err := cc.Read("virtual", strings.NewReader(src))
+	if err != nil {
+		log.Fatal(err)
+	}
+	lp := &linkprog{Prog: p, fields: make(map[string]*cc.Decl)}
+
+	var stack = []*cc.Decl{nil}
+	var tos *cc.Decl
+	var before = func(x cc.Syntax) {
+		decl, ok := x.(*cc.Decl)
+		if !ok {
+			return
+		}
+		tos = stack[len(stack)-1]
+		stack = append(stack, decl)
+		if tos != nil && tos.Name == "Link" && tos.Type.Kind == cc.Struct {
+			lp.fields[decl.Name] = decl
+		}
+	}
+	var after = func(x cc.Syntax) {
+		_, ok := x.(*cc.Decl)
+		if !ok {
+			return
+		}
+		tos, stack = stack[len(stack)-1], stack[:len(stack)-1]
+	}
+	cc.Walk(lp.Prog, before, after)
+	return lp
 }
 
 func NewProg(ccprog *cc.Prog) *prog {
@@ -392,6 +425,10 @@ func diff() {
 	if err := ioutil.WriteFile("d12.patch", out, 0664); err != nil {
 		log.Fatal(err)
 	}
+	out, _ = exec.Command("diff", "-urp", "l.2", "l.3").Output()
+	if err := ioutil.WriteFile("d23.patch", out, 0664); err != nil {
+		log.Fatal(err)
+	}
 }
 
 // static ensures that every symbol that can be static, is.
@@ -444,30 +481,35 @@ func (prog *prog) rename(newnames map[string]string) {
 	})
 }
 
-// LinkDecls returns the set of all declarations (fields) inside the Link
-// structure.
-func LinkDecls(lprog *prog) symset {
-	syms := make(symset)
-	var stack = []*cc.Decl{nil}
-	var tos *cc.Decl
-	var before = func(x cc.Syntax) {
-		decl, ok := x.(*cc.Decl)
+// addctxt adds Link *ctxt parameters to functions and rewrites code to use
+// the parameter.
+func (prog *prog) addctxt(lprog *linkprog) {
+	cc.Preorder(prog.Prog, func(x cc.Syntax) {
+		expr, ok := x.(*cc.Expr)
 		if !ok {
 			return
 		}
-		tos = stack[len(stack)-1]
-		stack = append(stack, decl)
-		if tos != nil && tos.Name == "Link" && tos.Type.Kind == cc.Struct {
-			syms[decl] = true
+		switch expr.Op {
+		case cc.Name:
+			sym, ok := prog.symtab[expr.Text]
+			if !ok {
+				return
+			}
+			if lprog.fields[sym.Name] != nil {
+				// hack: we only replace the name, not the expression.
+				expr.Text = "ctxt->"+expr.Text
+			}
+		case cc.Addr, cc.Call:
+			if expr.Left == nil || expr.Left.XDecl == nil {
+				return
+			}
+			if _, ok := prog.symmap[expr.Left.XDecl]; !ok {
+				return // not a global symbol
+			}
+			if lprog.fields[expr.Left.XDecl.Name] != nil {
+				// hack: we only replace the name, not the expression.
+				expr.Text = "ctxt->"+expr.Text
+			}
 		}
-	}
-	var after = func(x cc.Syntax) {
-		_, ok := x.(*cc.Decl)
-		if !ok {
-			return
-		}
-		tos, stack = stack[len(stack)-1], stack[:len(stack)-1]
-	}
-	cc.Walk(lprog.Prog, before, after)
-	return syms
+	})
 }
