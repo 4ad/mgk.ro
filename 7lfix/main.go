@@ -49,6 +49,8 @@ var filemap = map[string]string{
 	"asmout.c": "asm7.c",
 }
 
+var linkdoth = runtime.GOROOT() + "include/link.h"
+
 // symbols to start from
 var start = map[string]bool{
 	"span":      true,
@@ -113,7 +115,7 @@ func main() {
 		flag.Usage()
 	}
 
-	prog := NewProg(parse())
+	prog := NewProg(parse(filemap))
 	prog.extract(start)
 	prog.print(filemap, "l.0")
 	prog.static(start, filemap)
@@ -125,7 +127,7 @@ func main() {
 
 // parse opens and parses all input files, and returns the result as
 // a *cc.Prog.
-func parse() *cc.Prog {
+func parse(filemap map[string]string) *cc.Prog {
 	var r []io.Reader
 	var files []string
 	for name, _ := range filemap {
