@@ -49,8 +49,6 @@ var filemap = map[string]string{
 	"asmout.c": "asm7.c",
 }
 
-var linkdoth = runtime.GOROOT() + "include/link.h"
-
 // symbols to start from
 var start = map[string]bool{
 	"span":      true,
@@ -75,6 +73,11 @@ var includes = `#include <u.h>
 #include <link.h>
 #include "../cmd/7l/7.out.h"
 `
+
+var link = strings.NewReader(`#include <u.h>
+#include <libc.h>
+#include <bio.h>
+#include <link.h>`)
 
 // symset is a set of symols.
 type symset map[*cc.Decl]bool
@@ -116,6 +119,13 @@ func main() {
 	}
 
 	prog := NewProg(parse(filemap))
+	p, err := cc.Read("virtual", link)
+	if err != nil {
+		log.Fatal(err)
+	}
+	linkprog := NewProg(p)
+	_ = linkprog
+
 	prog.extract(start)
 	prog.print(filemap, "l.0")
 	prog.static(start, filemap)
