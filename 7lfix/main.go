@@ -123,8 +123,9 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	linkprog := NewProg(p)
-	_ = linkprog
+	lprog := NewProg(p)
+	ldecls := LinkDecls(lprog)
+	_ = ldecls
 
 	prog.extract(start)
 	prog.print(filemap, "l.0")
@@ -441,4 +442,32 @@ func (prog *prog) rename(newnames map[string]string) {
 		}
 		expr.Text = newnames[expr.Text]
 	})
+}
+
+// LinkDecls returns the set of all declarations (fields) inside the Link
+// structure.
+func LinkDecls(lprog *prog) symset {
+	syms := make(symset)
+	var stack = []*cc.Decl{nil}
+	var tos *cc.Decl
+	var before = func(x cc.Syntax) {
+		decl, ok := x.(*cc.Decl)
+		if !ok {
+			return
+		}
+		tos = stack[len(stack)-1]
+		stack = append(stack, decl)
+		if tos != nil && tos.Name == "Link" && tos.Type.Kind == cc.Struct {
+			syms[decl] = true
+		}
+	}
+	var after = func(x cc.Syntax) {
+		_, ok := x.(*cc.Decl)
+		if !ok {
+			return
+		}
+		tos, stack = stack[len(stack)-1], stack[:len(stack)-1]
+	}
+	cc.Walk(lprog.Prog, before, after)
+	return syms
 }
