@@ -30,10 +30,10 @@ const (
 	lddir   = "/src/cmd/" + ld
 )
 
-// iomap maps each input file to its corresponding output file.
+// filemap maps each input file to its corresponding output file.
 // Unknown files go to zzz.c.
 // missing *.h pstate.c main.c.
-var iomap = map[string]string{
+var filemap = map[string]string{
 	"dyn.c":    "asm7.c",
 	"sub.c":    "xxx.c",
 	"mod.c":    "xxx.c",
@@ -95,11 +95,11 @@ type prog struct {
 	filetab map[string]symset   // maps files to symbols
 }
 
-// replace unqualified names in iomap with full paths.
+// replace unqualified names in filemap with full paths.
 func init() {
-	for k, v := range iomap {
-		iomap[runtime.GOROOT()+lddir+"/"+k] = v
-		delete(iomap, k)
+	for k, v := range filemap {
+		filemap[runtime.GOROOT()+lddir+"/"+k] = v
+		delete(filemap, k)
 	}
 }
 
@@ -115,11 +115,11 @@ func main() {
 
 	prog := NewProg(parse())
 	prog.extract(start)
-	prog.print(iomap, "l.0")
-	prog.static(start, iomap)
-	prog.print(iomap, "l.1")
+	prog.print(filemap, "l.0")
+	prog.static(start, filemap)
+	prog.print(filemap, "l.1")
 	prog.rename(rename)
-	prog.print(iomap, "l.2")
+	prog.print(filemap, "l.2")
 	diff()
 }
 
@@ -128,7 +128,7 @@ func main() {
 func parse() *cc.Prog {
 	var r []io.Reader
 	var files []string
-	for name, _ := range iomap {
+	for name, _ := range filemap {
 		f, err := os.Open(name)
 		if err != nil {
 			log.Fatal(err)
@@ -303,11 +303,11 @@ func (prog *prog) trim(subset symset) {
 }
 
 // Print pretty prints prog writing the output into dir. FIle names are
-// taked from iomap.
+// taked from filemap.
 //
 // BUG(aram): this correctly  prints only functions, not global variable
 // declarations.
-func (prog *prog) print(iomap map[string]string, dir string) {
+func (prog *prog) print(filemap map[string]string, dir string) {
 	err := os.RemoveAll(dir)
 	if err != nil {
 		log.Fatal(err)
@@ -320,7 +320,7 @@ func (prog *prog) print(iomap map[string]string, dir string) {
 		if !strings.Contains(v.Span.String(), ld) {
 			continue
 		}
-		name, ok := iomap[v.Span.Start.File]
+		name, ok := filemap[v.Span.Start.File]
 		if !ok {
 			if strings.Contains(v.Span.Start.File, ".h") {
 				name = "l.h"
@@ -341,7 +341,7 @@ func (prog *prog) print(iomap map[string]string, dir string) {
 			if strings.Contains(v.Span.Start.File, ".c") {
 				f.WriteString("// From ")
 				for _, from := range filenames() {
-					if name == iomap[from] {
+					if name == filemap[from] {
 						f.WriteString(path.Base(from))
 						f.WriteString(" ")
 					}
@@ -361,7 +361,7 @@ func (prog *prog) print(iomap map[string]string, dir string) {
 
 func filenames() []string {
 	var files sort.StringSlice
-	for from, _ := range iomap {
+	for from, _ := range filemap {
 		files = append(files, from)
 	}
 	sort.Sort(sort.StringSlice(files))
@@ -382,12 +382,12 @@ func diff() {
 }
 
 // static ensures that every symbol that can be static, is.
-func (prog *prog) static(start map[string]bool, iomap map[string]string) {
+func (prog *prog) static(start map[string]bool, filemap map[string]string) {
 	for _, sym := range prog.symlist {
-		dfile := iomap[sym.Span.Start.File]
+		dfile := filemap[sym.Span.Start.File]
 		static := true
 		for file, syms := range prog.filetab {
-			if iomap[file] == dfile {
+			if filemap[file] == dfile {
 				continue
 			}
 			if _, ok := syms[sym]; ok {
