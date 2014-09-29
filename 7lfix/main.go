@@ -538,7 +538,7 @@ func (prog *prog) addctxt(lprog *linkprog) {
 	for sym := range funcs {
 		r(sym)
 	}
-	// fix definitions of functions now Link *ctxt
+	// fix definitions of functions now using Link *ctxt
 	for sym := range funcs {
 		arg0 := &cc.Decl{
 			Name: "ctxt",
