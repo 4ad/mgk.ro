@@ -422,6 +422,7 @@ func (prog *prog) print(filemap map[string]string) {
 		case cc.Func:
 			printproto(sym, p.protobuf)
 			printfunc(sym, p.fnbuf)
+			io.WriteString(p.fnbuf, "\n")
 		}
 	}
 	for name, p := range printers {
@@ -431,6 +432,7 @@ func (prog *prog) print(filemap map[string]string) {
 		}
 		defer f.Close()
 		io.Copy(f, p.protobuf)
+		io.WriteString(f, "\n")
 		io.Copy(f, p.fnbuf)
 	}
 }
