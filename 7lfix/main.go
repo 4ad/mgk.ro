@@ -74,13 +74,6 @@ var needcursym = map[string]bool{
 	"firstp": true,
 }
 
-var includes = `#include <u.h>
-#include <libc.h>
-#include <bio.h>
-#include <link.h>
-#include "../cmd/7l/7.out.h"
-`
-
 var linksrc = `#include <u.h>
 #include <libc.h>
 #include <bio.h>
