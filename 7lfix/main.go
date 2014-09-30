@@ -7,6 +7,7 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"io"
@@ -14,9 +15,8 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"path"
 	"runtime"
-	"sort"
+	"strconv"
 	"strings"
 
 	"code.google.com/p/rsc/cc"
@@ -135,15 +135,15 @@ func main() {
 	lprog := NewLinkprog(linksrc)
 
 	prog.extract(start)
-	prog.print(filemap, "l.0")
+	prog.print(filemap)
 	prog.static(start, filemap)
-	prog.print(filemap, "l.1")
+	prog.print(filemap)
 	prog.rename(rename)
-	prog.print(filemap, "l.2")
+	prog.print(filemap)
 	prog.addcursym(needcursym)
-	prog.print(filemap, "l.3")
+	prog.print(filemap)
 	prog.addctxt(lprog)
-	prog.print(filemap, "l.4")
+	prog.print(filemap)
 	diff()
 }
 
@@ -357,12 +357,43 @@ func (prog *prog) trim(subset symset) {
 	}
 }
 
-// Print pretty prints prog, writing the output into dir. File names
-// are taken from filemap.
+func printproto(fn *cc.Decl, w io.Writer) {
+	if !fn.Type.Is(cc.Func) {
+		return
+	}
+	nfn := *fn
+	nfn.Body = nil
+	nfn.Comments = cc.Comments{}
+	var pp cc.Printer
+	pp.Print(&nfn)
+	w.Write(pp.Bytes())
+	io.WriteString(w, ";\n")
+}
+
+func printfunc(fn *cc.Decl, w io.Writer) {
+	if !fn.Type.Is(cc.Func) {
+		return
+	}
+	if fn.Body == nil {
+		return
+	}
+	var pp cc.Printer
+	pp.Print(fn)
+	w.Write(pp.Bytes())
+	io.WriteString(w, "\n")
+}
+
+// each print bumps the generation. also used by diff.
+var generation int
+
+// Print pretty prints prog, writing the output into l.n, where n is
+// an autoincrementing integer.. File names are taken from filemap.
 //
-// BUG(aram): this function can print correctly only functions, 
-// not global variable declarations.
-func (prog *prog) print(filemap map[string]string, dir string) {
+// BUG(aram): this function can print correctly only functions, not global
+// variable declarations.
+func (prog *prog) print(filemap map[string]string) {
+	dir := "l." + strconv.Itoa(generation)
+	generation++
 	err := os.RemoveAll(dir)
 	if err != nil {
 		log.Fatal(err)
@@ -370,80 +401,51 @@ func (prog *prog) print(filemap map[string]string, dir string) {
 	if err := os.MkdirAll(dir, 0775); err != nil {
 		log.Fatal(err)
 	}
-	file := make(map[string]*os.File)
-	for _, v := range prog.symlist {
-		if !strings.Contains(v.Span.String(), ld) {
+	type printer struct {
+		protobuf, fnbuf io.ReadWriter
+	}
+	var printers = make (map[string]printer)
+	for _, newname := range filemap {
+		if _, ok := printers[newname]; !ok {
+			printers[newname] = printer{
+				protobuf : new(bytes.Buffer),
+				fnbuf : new(bytes.Buffer),
+			}
+		}
+	}
+	for _, sym := range prog.symlist {
+		p, ok := printers[filemap[sym.Span.Start.File]]
+		if !ok {
 			continue
 		}
-		name, ok := filemap[v.Span.Start.File]
-		if !ok {
-			if strings.Contains(v.Span.Start.File, ".h") {
-				name = "l.h"
-			} else {
-				name = "zzz.c"
-			}
+		switch sym.Type.Kind {
+		case cc.Func:
+			printproto(sym, p.protobuf)
+			printfunc(sym, p.fnbuf)
 		}
-		f, ok := file[name]
-		if !ok {
-			// fmt.Printf("%v:	%v\n", dir + "/" + name, file)
-			f, err = os.Create(dir + "/" + name)
-			if err != nil {
-				log.Fatal(err)
-			}
-			defer f.Close()
-			file[name] = f
-			f.WriteString("//+build ignore\n\n")
-			if strings.Contains(v.Span.Start.File, ".c") {
-				f.WriteString("// From ")
-				for _, from := range filenames() {
-					if name == filemap[from] {
-						f.WriteString(path.Base(from))
-						f.WriteString(" ")
-					}
-				}
-				f.WriteString("\n\n")
-				f.WriteString(includes)
-				f.WriteString("\n")
-			}
+	}
+	for name, p := range printers {
+		f, err := os.Create(dir + "/" + name)
+		if err != nil {
+			log.Fatal(err)
 		}
-		var pp cc.Printer
-		pp.Print(v)
-		f.Write(pp.Bytes())
-		f.WriteString("\n\n")
+		defer f.Close()
+		io.Copy(f, p.protobuf)
+		io.Copy(f, p.fnbuf)
 	}
-
-}
-
-func filenames() []string {
-	var files sort.StringSlice
-	for from, _ := range filemap {
-		files = append(files, from)
-	}
-	sort.Sort(sort.StringSlice(files))
-	return files
 }
 
 // diff generates diffs between transformations, so we can see what we
 // are doing.
 func diff() {
-	out, _ := exec.Command("diff", "-urp", "l.0", "l.1").Output()
-	if err := ioutil.WriteFile("d01.patch", out, 0664); err != nil {
-		log.Fatal(err)
+	for i := 1; i < generation; i++ {
+		out, _ := exec.Command("diff", "-urp", "l."+strconv.Itoa(i-1), "l."+strconv.Itoa(i)).Output()
+		if err := ioutil.WriteFile(fmt.Sprintf("d%d%d.patch", i-1, i), out, 0664); err != nil {
+			log.Fatal(err)
+		}
 	}
-	out, _ = exec.Command("diff", "-urp", "l.1", "l.2").Output()
-	if err := ioutil.WriteFile("d12.patch", out, 0664); err != nil {
-		log.Fatal(err)
-	}
-	out, _ = exec.Command("diff", "-urp", "l.2", "l.3").Output()
-	if err := ioutil.WriteFile("d23.patch", out, 0664); err != nil {
-		log.Fatal(err)
-	}
-	out, _ = exec.Command("diff", "-urp", "l.3", "l.4").Output()
-	if err := ioutil.WriteFile("d34.patch", out, 0664); err != nil {
-		log.Fatal(err)
-	}
-	out, _ = exec.Command("diff", "-urp", "l.0", "l.4").Output()
-	if err := ioutil.WriteFile("d04.patch", out, 0664); err != nil {
+	out, _ := exec.Command("diff", "-urp", "l.0", "l."+strconv.Itoa(generation-1)).Output()
+	if err := ioutil.WriteFile(fmt.Sprintf("d0%d.patch", generation-1), out, 0664); err != nil {
 		log.Fatal(err)
 	}
 }
