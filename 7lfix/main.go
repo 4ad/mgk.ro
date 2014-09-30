@@ -71,7 +71,7 @@ var rename = map[string]string{
 // using these symbols needs a LSym *cursym parameter.
 var needcursym = map[string]bool{
 	"curtext": true,
-	"firstp": true,
+	"firstp":  true,
 }
 
 var linksrc = `#include <u.h>
@@ -354,9 +354,6 @@ func printproto(fn *cc.Decl, w io.Writer) {
 	if !fn.Type.Is(cc.Func) {
 		return
 	}
-	if fn.Body == nil {
-		return
-	}
 	nfn := *fn
 	nfn.Body = nil
 	nfn.Comments = cc.Comments{}
@@ -381,20 +378,27 @@ func printfunc(fn *cc.Decl, w io.Writer) {
 	if !fn.Type.Is(cc.Func) {
 		return
 	}
-	if fn.Body == nil {
-		return
-	}
 	var pp cc.Printer
 	pp.Print(fn)
 	w.Write(pp.Bytes())
-	io.WriteString(w, "\n")
+	io.WriteString(w, "\n\n")
+}
+
+func printdata(decl *cc.Decl, w io.Writer) {
+	var pp cc.Printer
+	if decl.Init == nil || decl.Type.Is(cc.Enum) {
+		return
+	}
+	pp.Print(decl)
+	w.Write(pp.Bytes())
+	io.WriteString(w, ";\n\n")
 }
 
 // each print bumps the generation. also used by diff.
 var generation int
 
 // Print pretty prints prog, writing the output into l.n, where n is
-// an autoincrementing integer.. File names are taken from filemap.
+// an autoincrementing integer. File names are taken from filemap.
 //
 // BUG(aram): this function can print correctly only functions, not global
 // variable declarations.
@@ -409,14 +413,15 @@ func (prog *prog) print(filemap map[string]string) {
 		log.Fatal(err)
 	}
 	type printer struct {
-		protobuf, fnbuf io.ReadWriter
+		protobuf, fnbuf, databuf io.ReadWriter
 	}
-	var printers = make (map[string]printer)
+	var printers = make(map[string]printer)
 	for _, newname := range filemap {
 		if _, ok := printers[newname]; !ok {
 			printers[newname] = printer{
-				protobuf : new(bytes.Buffer),
-				fnbuf : new(bytes.Buffer),
+				protobuf: new(bytes.Buffer),
+				fnbuf:    new(bytes.Buffer),
+				databuf:  new(bytes.Buffer),
 			}
 		}
 	}
@@ -427,9 +432,13 @@ func (prog *prog) print(filemap map[string]string) {
 		}
 		switch sym.Type.Kind {
 		case cc.Func:
+			if sym.Body == nil {
+				continue
+			}
 			printproto(sym, p.protobuf)
 			printfunc(sym, p.fnbuf)
-			io.WriteString(p.fnbuf, "\n")
+		default:
+			printdata(sym, p.databuf)
 		}
 	}
 	for name, p := range printers {
@@ -440,6 +449,7 @@ func (prog *prog) print(filemap map[string]string) {
 		defer f.Close()
 		io.Copy(f, p.protobuf)
 		io.WriteString(f, "\n")
+		io.Copy(f, p.databuf)
 		io.Copy(f, p.fnbuf)
 	}
 }
@@ -600,7 +610,7 @@ func (prog *prog) addctxt(lprog *linkprog) {
 			return
 		}
 		expr0 := &cc.Expr{
-			Op: cc.Name,
+			Op:   cc.Name,
 			Text: "ctxt",
 		}
 		expr.List = append([]*cc.Expr{expr0}, expr.List...)
@@ -677,7 +687,7 @@ func (prog *prog) addcursym(needcursym map[string]bool) {
 			return
 		}
 		expr0 := &cc.Expr{
-			Op: cc.Name,
+			Op:   cc.Name,
 			Text: "cursym",
 		}
 		expr.List = append([]*cc.Expr{expr0}, expr.List...)
