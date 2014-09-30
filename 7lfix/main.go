@@ -670,4 +670,41 @@ func (prog *prog) addcursym(needcursym map[string]bool) {
 		}
 		expr.List = append([]*cc.Expr{expr0}, expr.List...)
 	})
+	// fix expressions involving LSym *cursym.
+	var curfunc *cc.Decl
+	cc.Preorder(prog.Prog, func(x cc.Syntax) {
+		decl, ok := x.(*cc.Decl)
+		if ok {
+			if decl.Type.Is(cc.Func) && decl.Body != nil {
+				curfunc = decl
+			}
+			return
+		}
+		expr, ok := x.(*cc.Expr)
+		if !ok {
+			return
+		}
+		switch expr.Op {
+		case cc.Name:
+			sym, ok := prog.symtab[expr.Text]
+			if !ok {
+				return
+			}
+			if needcursym[sym.Name] {
+				// hack: we only replace the name, not the expression.
+				expr.Text = "cursym->text"
+			}
+		case cc.Addr, cc.Call:
+			if expr.Left == nil || expr.Left.XDecl == nil {
+				return
+			}
+			if _, ok := prog.symmap[expr.Left.XDecl]; !ok {
+				return // not a global symbol
+			}
+			if needcursym[expr.Left.XDecl.Name] {
+				// hack: we only replace the name, not the expression.
+				expr.Text = "cursym->text"
+			}
+		}
+	})
 }
