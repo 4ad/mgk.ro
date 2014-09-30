@@ -34,7 +34,6 @@ const (
 // Unknown files go to zzz.c.
 // missing *.h pstate.c main.c.
 var filemap = map[string]string{
-	"dyn.c":    "asm7.c",
 	"sub.c":    "xxx.c",
 	"mod.c":    "xxx.c",
 	"list.c":   "list7.c",
@@ -109,8 +108,8 @@ type linkprog struct {
 // replace unqualified names in filemap with full paths.
 func init() {
 	for k, v := range filemap {
-		filemap[runtime.GOROOT()+lddir+"/"+k] = v
 		delete(filemap, k)
+		filemap[runtime.GOROOT()+lddir+"/"+k] = v
 	}
 }
 
