@@ -354,6 +354,9 @@ func printproto(fn *cc.Decl, w io.Writer) {
 	if !fn.Type.Is(cc.Func) {
 		return
 	}
+	if fn.Body == nil {
+		return
+	}
 	nfn := *fn
 	nfn.Body = nil
 	nfn.Comments = cc.Comments{}
