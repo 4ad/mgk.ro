@@ -67,6 +67,12 @@ var rename = map[string]string{
 	"noops":     "addstacksplit",
 }
 
+// using these symbols needs a LSym *cursym parameter.
+var needcursym = map[string]bool{
+	"curtext": true,
+	"firstp": true,
+}
+
 var includes = `#include <u.h>
 #include <libc.h>
 #include <bio.h>
@@ -133,8 +139,10 @@ func main() {
 	prog.print(filemap, "l.1")
 	prog.rename(rename)
 	prog.print(filemap, "l.2")
-	prog.addctxt(lprog)
+	prog.addcursym(needcursym)
 	prog.print(filemap, "l.3")
+	prog.addctxt(lprog)
+	prog.print(filemap, "l.4")
 	diff()
 }
 
@@ -429,8 +437,12 @@ func diff() {
 	if err := ioutil.WriteFile("d23.patch", out, 0664); err != nil {
 		log.Fatal(err)
 	}
-	out, _ = exec.Command("diff", "-urp", "l.0", "l.3").Output()
-	if err := ioutil.WriteFile("d03.patch", out, 0664); err != nil {
+	out, _ = exec.Command("diff", "-urp", "l.3", "l.4").Output()
+	if err := ioutil.WriteFile("d34.patch", out, 0664); err != nil {
+		log.Fatal(err)
+	}
+	out, _ = exec.Command("diff", "-urp", "l.0", "l.4").Output()
+	if err := ioutil.WriteFile("d04.patch", out, 0664); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -581,4 +593,52 @@ func (prog *prog) addctxt(lprog *linkprog) {
 		}
 		expr.List = append([]*cc.Expr{expr0}, expr.List...)
 	})
+}
+
+// addcursym adds LSym *cursym parameters to functions and rewrites code
+// to use the parameter.
+func (prog *prog) addcursym(needcursym map[string]bool) {
+	// patch function definitions
+	var funcs = make(symset)
+	for symname := range needcursym {
+		sym, ok := prog.symtab[symname]
+		if !ok {
+			log.Fatalf("symbol %q not found")
+		}
+		for sym := range prog.reverse[sym] {
+			funcs[sym] = true
+		}
+	}
+	// if a function requires a LSym *cursym, its callees require it too.
+	var r func(sym *cc.Decl)
+	r = func(sym *cc.Decl) {
+		if _, ok := funcs[sym]; ok {
+			return
+		}
+		funcs[sym] = true
+		for sym := range prog.reverse[sym] {
+			r(sym)
+		}
+	}
+	for sym := range funcs {
+		r(sym)
+	}
+	// fix definitions of functions now using Link *ctxt
+	for sym := range funcs {
+		arg0 := &cc.Decl{
+			Name: "cursym",
+			Type: &cc.Type{
+				Kind: cc.Ptr,
+				Base: &cc.Type{
+					Name: "LSym",
+					Kind: cc.TypedefType, // not even a lie
+				},
+			},
+		}
+		if sym.Type.Decls[0].Type.Is(cc.Void) {
+			sym.Type.Decls = []*cc.Decl{arg0}
+			continue
+		}
+		sym.Type.Decls = append([]*cc.Decl{arg0}, sym.Type.Decls...)
+	}
 }
