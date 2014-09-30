@@ -360,10 +360,21 @@ func printproto(fn *cc.Decl, w io.Writer) {
 	nfn := *fn
 	nfn.Body = nil
 	nfn.Comments = cc.Comments{}
+	olddecls := nfn.Type.Decls
+	var newdecls []*cc.Decl
+	for _, v := range nfn.Type.Decls {
+		dclcopy := *v
+		newdecls = append(newdecls, &dclcopy)
+	}
+	nfn.Type.Decls = newdecls
+	for i := range nfn.Type.Decls {
+		nfn.Type.Decls[i].Name = ""
+	}
 	var pp cc.Printer
 	pp.Print(&nfn)
 	w.Write(pp.Bytes())
 	io.WriteString(w, ";\n")
+	nfn.Type.Decls = olddecls
 }
 
 func printfunc(fn *cc.Decl, w io.Writer) {
