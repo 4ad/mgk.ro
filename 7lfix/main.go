@@ -399,9 +399,6 @@ var generation int
 
 // Print pretty prints prog, writing the output into l.n, where n is
 // an autoincrementing integer. File names are taken from filemap.
-//
-// BUG(aram): this function can print correctly only functions, not global
-// variable declarations.
 func (prog *prog) print(filemap map[string]string) {
 	dir := "l." + strconv.Itoa(generation)
 	generation++
