@@ -572,7 +572,7 @@ func (prog *prog) addctxt(lprog *linkprog) {
 		}
 		sym.Type.Decls = append([]*cc.Decl{arg0}, sym.Type.Decls...)
 	}
-	// patch call sites of every function too.
+	// patch call sites of every function now taking a Link *ctxt.
 	cc.Preorder(prog.Prog, func(x cc.Syntax) {
 		expr, ok := x.(*cc.Expr)
 		if !ok {
@@ -606,6 +606,10 @@ func (prog *prog) addcursym(needcursym map[string]bool) {
 			log.Fatalf("symbol %q not found")
 		}
 		for sym := range prog.reverse[sym] {
+			// we don't need to patch diag, liblink diag is different.
+			if sym.Name == "diag" {
+				continue
+			}
 			funcs[sym] = true
 		}
 	}
@@ -613,6 +617,10 @@ func (prog *prog) addcursym(needcursym map[string]bool) {
 	var r func(sym *cc.Decl)
 	r = func(sym *cc.Decl) {
 		if _, ok := funcs[sym]; ok {
+			return
+		}
+		// we don't need to patch diag, liblink diag is different.
+		if sym.Name == "diag" {
 			return
 		}
 		funcs[sym] = true
@@ -641,4 +649,25 @@ func (prog *prog) addcursym(needcursym map[string]bool) {
 		}
 		sym.Type.Decls = append([]*cc.Decl{arg0}, sym.Type.Decls...)
 	}
+	// patch call sites of every function now taking a LSym *cursym.
+	cc.Preorder(prog.Prog, func(x cc.Syntax) {
+		expr, ok := x.(*cc.Expr)
+		if !ok {
+			return
+		}
+		if expr.Op != cc.Call {
+			return
+		}
+		if _, ok := prog.symmap[expr.Left.XDecl]; !ok {
+			return
+		}
+		if _, ok := funcs[expr.Left.XDecl]; !ok {
+			return
+		}
+		expr0 := &cc.Expr{
+			Op: cc.Name,
+			Text: "cursym",
+		}
+		expr.List = append([]*cc.Expr{expr0}, expr.List...)
+	})
 }
