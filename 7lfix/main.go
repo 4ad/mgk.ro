@@ -57,6 +57,7 @@ var start = map[string]bool{
 	"follow":    true,
 	"noops":     true,
 	"listinit":  true,
+	"buildop":   true,
 }
 
 // symbols to be renamed.
