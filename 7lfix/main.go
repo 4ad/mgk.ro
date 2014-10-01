@@ -15,7 +15,9 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path"
 	"runtime"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -443,11 +445,30 @@ func (prog *prog) print(filemap map[string]string) {
 			log.Fatal(err)
 		}
 		defer f.Close()
+		if strings.Contains(name, ".c") {
+			f.WriteString("// From ")
+			for _, from := range filenames() {
+				if name == filemap[from] {
+					f.WriteString(path.Base(from))
+					f.WriteString(" ")
+				}
+			}
+			f.WriteString("\n\n")
+		}
 		io.Copy(f, p.protobuf)
 		io.WriteString(f, "\n")
 		io.Copy(f, p.databuf)
 		io.Copy(f, p.fnbuf)
 	}
+}
+
+func filenames() []string {
+	var files sort.StringSlice
+	for from, _ := range filemap {
+		files = append(files, from)
+	}
+	sort.Sort(sort.StringSlice(files))
+	return files
 }
 
 // diff generates diffs between transformations, so we can see what we
