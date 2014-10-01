@@ -297,7 +297,7 @@ func (prog *prog) extract(start map[string]bool) {
 	for name := range start {
 		sym, ok := prog.symtab[name]
 		if !ok {
-			log.Fatal("symbol %q not found", name)
+			log.Fatalf("symbol %q not found", name)
 		}
 		r(sym)
 	}
@@ -642,7 +642,7 @@ func (prog *prog) addcursym(needcursym map[string]bool) {
 	for symname := range needcursym {
 		sym, ok := prog.symtab[symname]
 		if !ok {
-			log.Fatalf("symbol %q not found")
+			log.Fatalf("symbol %q not found", sym.Name)
 		}
 		for sym := range prog.reverse[sym] {
 			// we don't need to patch diag, liblink diag is different.
