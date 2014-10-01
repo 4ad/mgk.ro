@@ -146,7 +146,7 @@ func main() {
 func parse(filemap map[string]string) *cc.Prog {
 	var r []io.Reader
 	var files []string
-	for name, _ := range filemap {
+	for name := range filemap {
 		f, err := os.Open(name)
 		if err != nil {
 			log.Fatal(err)
@@ -464,7 +464,7 @@ func (prog *prog) print(filemap map[string]string) {
 
 func filenames() []string {
 	var files sort.StringSlice
-	for from, _ := range filemap {
+	for from := range filemap {
 		files = append(files, from)
 	}
 	sort.Sort(sort.StringSlice(files))
