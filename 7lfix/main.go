@@ -670,7 +670,7 @@ func (prog *prog) addcursym(needcursym map[string]bool) {
 	for sym := range funcs {
 		r(sym)
 	}
-	// fix definitions of functions now using Link *ctxt
+	// fix definitions of functions now using LSym *cursym.
 	for sym := range funcs {
 		arg0 := &cc.Decl{
 			Name: "cursym",
