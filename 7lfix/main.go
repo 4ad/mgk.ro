@@ -138,6 +138,8 @@ func main() {
 	prog.print(filemap)
 	prog.addctxt(lprog)
 	prog.print(filemap)
+	prog.rmPS()
+	prog.print(filemap)
 	diff()
 }
 
@@ -743,6 +745,28 @@ func (prog *prog) addcursym(needcursym map[string]bool) {
 			if needcursym[expr.Left.XDecl.Name] {
 				// hack: we only replace the name, not the expression.
 				expr.Text = "cursym->text"
+			}
+		}
+	})
+}
+
+// rmPS replaces P, S with nil.
+func (prog *prog) rmPS() {
+	cc.Preorder(prog.Prog, func(x cc.Syntax) {
+		expr, ok := x.(*cc.Expr)
+		if !ok {
+			return
+		}
+		switch expr.Op {
+		case cc.Name:
+			sym, ok := prog.symtab[expr.Text]
+			if !ok {
+				return
+			}
+			switch sym.Name {
+			case "S", "P":
+				// hack: we only replace the name, not the expression.
+				expr.Text = "nil"
 			}
 		}
 	})
