@@ -6,7 +6,7 @@ Package log sets the standard log package to print simple prog: message
 messages. It doesn't export any symbol, it should be imported only for
 side effects.
 */
-package log
+package log // import "mgk.ro/log"
 
 import (
 	"log"

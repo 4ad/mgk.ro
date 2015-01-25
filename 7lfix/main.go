@@ -21,9 +21,9 @@ import (
 	"strconv"
 	"strings"
 
-	"code.google.com/p/rsc/cc"
+	"rsc.io/c2go/cc"
 
-	_ "code.google.com/p/rbits/log"
+	_ "mgk.ro/log"
 )
 
 const (

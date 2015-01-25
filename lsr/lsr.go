@@ -20,7 +20,7 @@ import (
 	"os"
 	"path/filepath"
 
-	_ "code.google.com/p/rbits/log"
+	_ "mgk.ro/log"
 )
 
 var (
