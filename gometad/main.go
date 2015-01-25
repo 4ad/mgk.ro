@@ -1,3 +1,8 @@
+/*
+Gometad: go get vanity redirector
+
+Gometad serves HTML meta tags over HTTP in order to implement mgk.ro vanity domain redirect to https://github.com/4ad/mgk.ro.git.
+*/
 package main
 
 import (
