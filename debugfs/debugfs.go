@@ -2,7 +2,7 @@
 Package debugfs implements helper functions for accessing the Linux
 debugfs (/sys/kernel/debug).
 */
-package debugfs // import mgk.ro/debugfs
+package debugfs // import "mgk.ro/debugfs"
 
 import (
 	"os"
