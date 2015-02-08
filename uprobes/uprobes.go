@@ -28,13 +28,6 @@ import (
 )
 
 const (
-	EventsFile    = "/sys/kernel/debug/tracing/uprobe_events"
-	EnableAllFile = "/sys/kernel/debug/tracing/events/uprobes/enable"
-	TraceFile     = "/sys/kernel/debug/tracing/trace"
-	TracePipe     = "/sys/kernel/debug/tracing/trace_pipe"
-)
-
-const (
 	Probe    = "p" // uprobe
 	RetProbe = "r" // uretprobe
 	ClrProbe = "-" // clear probe
