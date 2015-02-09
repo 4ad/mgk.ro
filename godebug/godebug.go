@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 
 	"mgk.ro/uprobes"
 )
@@ -18,7 +19,7 @@ import (
 func ProgLoadAddr(f *elf.File) uint64 {
 	for _, p := range f.Progs {
 		if p.Type == elf.PT_LOAD && p.Flags == elf.PF_X|elf.PF_R {
-			return p.Vaddr
+			return p.Vaddr - p.Off
 		}
 	}
 	panic("program load address not found")
@@ -87,13 +88,22 @@ func FuncOffset(fn *gosym.Func, load uint64) uint64 {
 // Uprobe will return an uprobes event suitable for tracing the specified
 // function.
 func Uprobe(p *Prog, fn *gosym.Func) *uprobes.Event {
-	ev := uprobes.NewEvent(fn.Name, p.path, FuncOffset(fn, p.load))
+	ev := uprobes.NewEvent(Uglify(fn.Name), p.path, FuncOffset(fn, p.load))
 	return ev
 }
 
 // URetProbe will return an uretprobe event suitable for tracing the
 // specified function return.
-func URetProbe(p *Prog, fn *gosym.Func) *uprobes.Event {
-	ev := uprobes.NewEvent(fn.Name, p.path, FuncOffset(fn, p.load)).Return()
+func UretProbe(p *Prog, fn *gosym.Func) *uprobes.Event {
+	ev := uprobes.NewEvent(Uglify(fn.Name)+"_ret", p.path, FuncOffset(fn, p.load)).Return()
 	return ev
+}
+
+var ugly = regexp.MustCompile(`[^a-zA-Z0-9_]`)
+
+// Uglify takes a nice Go name like net/http.(*response).WriteHeader and
+// turns it into net__http______response____WriteHeader. This is because
+// uprobes can only accept these retarded names.
+func Uglify(name string) string {
+	return ugly.ReplaceAllLiteralString(name, "__")
 }
