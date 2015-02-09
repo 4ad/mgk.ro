@@ -64,8 +64,7 @@ var (
 	cmd *exec.Cmd
 	prg *godebug.Prog
 	uprobes []io.Reader
-	eventsFile *os.File
-	enableFile *os.File
+	pipew *io.PipeWriter
 	done = make(chan bool)
 )
 
@@ -73,8 +72,10 @@ func cleanup() {
 	if !*tracing {
 		return
 	}
-	out.Close()
-	err := debugfs.Disable(enableFile)
+	log.Println("disabling tracing... (this might take a while)")
+	err := pipew.Close()
+	err = os.Truncate(debugfs.UprobesEvents, 0)
+	err = debugfs.Disable(debugfs.UprobesEnable)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -119,6 +120,7 @@ func findprobes() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	i := 0
 	for _, fn := range prg.Funcs {
 		for _, regex := range filter {
 			matched, err := regexp.MatchString(regex, fn.Name)
@@ -129,26 +131,31 @@ func findprobes() {
 				continue
 			}
 			uprobes = append(uprobes, godebug.Uprobe(prg, &fn))
+			i++
 			if *traceRet {
 				uprobes = append(uprobes, godebug.UretProbe(prg, &fn))
+				i++
 			}
 		}
 	}
+	log.Printf("found %d probes", i)
 }
 
 func writeprobes() {
+	f := out
+	var err error
 	if *tracing {
-		eventsFile = debugfs.MustOpenX(debugfs.UprobesEvents)
-		err := eventsFile.Truncate(0)
+		f, err = os.Create(debugfs.UprobesEvents)
 		if err != nil {
 			log.Fatal(err)
 		}
-	} else {
-		eventsFile = out
 	}
-	_, err := io.Copy(eventsFile, io.MultiReader(uprobes...))
+	_, err = io.Copy(f, io.MultiReader(uprobes...))
 	if err != nil {
 		log.Fatal(err)
+	}
+	if *tracing {
+		f.Close()
 	}
 }
 
@@ -156,20 +163,26 @@ func trace() {
 	if !*tracing {
 		return
 	}
-	traceFile := debugfs.MustOpenX(debugfs.Trace)
-	err := traceFile.Truncate(0)
-	traceFile.Close()
-	tracePipe := debugfs.MustOpenX(debugfs.TracePipe)
+	err := os.Truncate(debugfs.Trace, 0)
 	if err != nil {
 		log.Fatal(err)
 	}
-	enableFile = debugfs.MustOpenX(debugfs.UprobesEnable)
-	err = debugfs.Enable(enableFile)
+	tracePipe, err := os.Open(debugfs.TracePipe)
 	if err != nil {
 		log.Fatal(err)
 	}
+	err = debugfs.Enable(debugfs.UprobesEnable)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println("tracing...")
+	r, w := io.Pipe()
+	pipew = w
 	go func() {
-		io.Copy(out, tracePipe)
+		io.Copy(w, tracePipe)
+	}()
+	go func() {
+		io.Copy(out, r)
 		close(done)
 	}()
 }
@@ -183,6 +196,7 @@ func runcmd() {
 		cleanup()
 		log.Fatal(err)
 	}
+	cleanup()
 }
 
 func main() {
