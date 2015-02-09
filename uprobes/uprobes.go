@@ -49,7 +49,7 @@ type Event struct {
 	Group     string // group name, Linux will set empty group to "uprobes"
 	Name      string // event name, a.i. EVENT in uprobetracer.txt
 	Path      string // path to ELF file
-	Offset    int    // offset where probe is inserted
+	Offset    uint64 // offset where probe is inserted
 	FetchArgs Args   // probe arguments
 
 	r io.Reader
@@ -58,7 +58,7 @@ type Event struct {
 // NewEvent returns a new uprobe event with given settings. To add uprobe
 // arguments you probably want to call methods like e.Register, e.Address,
 // etc.
-func NewEvent(name, path string, offset int) *Event {
+func NewEvent(name, path string, offset uint64) *Event {
 	return &Event{
 		Kind:   "p",
 		Name:   name,
