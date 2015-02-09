@@ -88,11 +88,11 @@ func FuncOffset(fn *gosym.Func, load uint64) uint64 {
 // Uprobe will return an uprobes event suitable for tracing the specified
 // function.
 func Uprobe(p *Prog, fn *gosym.Func) *uprobes.Event {
-	ev := uprobes.NewEvent(Uglify(fn.Name), p.path, FuncOffset(fn, p.load))
+	ev := uprobes.NewEvent(Uglify(fn.Name), p.path, FuncOffset(fn, p.load)).Stack("h0", 1).U64().Stack("d0", 1).S64().Stack("h1", 2).U64().Stack("d1", 2).S64().Stack("h2", 3).U64().Stack("d2", 3).S64().Stack("h3", 4).U64().Stack("d3", 4).S64()
 	return ev
 }
 
-// URetProbe will return an uretprobe event suitable for tracing the
+// UretProbe will return an uretprobe event suitable for tracing the
 // specified function return.
 func UretProbe(p *Prog, fn *gosym.Func) *uprobes.Event {
 	ev := uprobes.NewEvent(Uglify(fn.Name)+"_ret", p.path, FuncOffset(fn, p.load)).Return()
