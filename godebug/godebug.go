@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"os/exec"
 	"path/filepath"
+
+	"mgk.ro/uprobes"
 )
 
 // ProgLoadAddr returns the program load address. It's useful to calculate
@@ -27,6 +29,7 @@ type Prog struct {
 	*elf.File
 	*gosym.Table
 
+	path string
 	load uint64
 }
 
@@ -60,6 +63,7 @@ func NewProg(cmd *exec.Cmd) (*Prog, error) {
 		File: f,
 		Table: tab,
 		load: ProgLoadAddr(f),
+		path: file,
 	}
 	return prg, nil
 }
@@ -78,4 +82,18 @@ func (p *Prog) FuncOffset(name string) uint64 {
 // image. This offset is used by uprobes.
 func FuncOffset(fn *gosym.Func, load uint64) uint64 {
 	return fn.Entry - load
+}
+
+// Uprobe will return an uprobes event suitable for tracing the specified
+// function.
+func Uprobe(p *Prog, fn *gosym.Func) *uprobes.Event {
+	ev := uprobes.NewEvent(fn.Name, p.path, FuncOffset(fn, p.load))
+	return ev
+}
+
+// URetProbe will return an uretprobe event suitable for tracing the
+// specified function return.
+func URetProbe(p *Prog, fn *gosym.Func) *uprobes.Event {
+	ev := uprobes.NewEvent(fn.Name, p.path, FuncOffset(fn, p.load)).Return()
+	return ev
 }
