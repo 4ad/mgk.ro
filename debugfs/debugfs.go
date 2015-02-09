@@ -15,24 +15,22 @@ const (
 	TracePipe     = "/sys/kernel/debug/tracing/trace_pipe"
 )
 
-// MustOpenX exclusively opens the named file. It panics if it cant't open
-// the file.
-func MustOpenX(name string) *os.File {
-	f, err := os.OpenFile(name, os.O_RDWR, 0)
-	if err != nil {
-		panic(err)
-	}
-	return f
-}
-
 // Enable writes the string "1" to the file.
-func Enable(f *os.File) error {
-	_, err := f.WriteString("1")
+func Enable(name string) error {
+	f, err := os.OpenFile(name, os.O_WRONLY, 0)
+	if err != nil {
+		return err
+	}
+	_, err = f.WriteString("1\n")
 	return err
 }
 
 // Disable writes the string "0" to the file.
-func Disable(f *os.File) error {
-	_, err := f.WriteString("0")
+func Disable(name string) error {
+	f, err := os.OpenFile(name, os.O_WRONLY, 0)
+	if err != nil {
+		return err
+	}
+	_, err = f.WriteString("0\n")
 	return err
 }
