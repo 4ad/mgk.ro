@@ -1,5 +1,16 @@
 /*
 Gotrace: go function tracer
+
+Usage:
+	gotrace [options] command [args]
+
+Flags:
+
+  -filter='.': only trace functions matching regexp; can be set multiple times
+  -o="": print to file instead of stderr
+  -ret=true: trace return from function
+  -run=true: run the command
+  -trace=true: enables tracing; false makes program print uprobes to output
 */
 package main
 
@@ -8,6 +19,7 @@ package main
 // BUG(aram): After normal exit, this program will leave probes behind (but disabled).
 // BUG(aram): This program will completely reset kernel tracing state.
 // BUG(aram): This program will trace every instance of the specified program, including existing ones.
+// BUG(aram): This program takes forever to exit.
 // BUG(aram): This program uses uprobes, which are Linux-specific and lack functionality.
 // BUG(aram): This program would not be necessary if Linux had DTrace and Go supported DTrace better.
 
