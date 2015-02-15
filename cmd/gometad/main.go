@@ -20,5 +20,6 @@ func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, meta)
 	})
+	go log.Fatal(http.ListenAndServeTLS(":443", "/opt/mgk.ro/ssl-unified.crt", "/opt/mgk.ro/ssl.key", nil))
 	log.Fatal(http.ListenAndServe(":80", nil))
 }
