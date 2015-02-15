@@ -1,5 +1,5 @@
 pfexec mkdir -p /opt/mgk.ro/bin && pfexec chown aram:staff /opt/mgk.ro/bin
 pfexec mkdir -p /var/www && pfexec chown aram:staff /var/www
-go build -o /opt/mgk.ro/bin/gometad mgk.ro/gometad
+go build -o /opt/mgk.ro/bin/gometad mgk.ro/cmd/gometad
 svccfg validate gometad.xml
 pfexec svccfg import gometad.xml
