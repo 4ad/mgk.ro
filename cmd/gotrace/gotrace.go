@@ -11,6 +11,7 @@ Flags:
   -ret=true: trace return from function
   -run=true: run the command
   -trace=true: enables tracing; false makes program print uprobes to output
+  -leavetrace=false: leaves tracing on
 */
 package main
 
@@ -43,6 +44,7 @@ var (
 	run       = flag.Bool("run", true, "run the command")
 	traceRet  = flag.Bool("ret", true, "trace return from function")
 	tracing   = flag.Bool("trace", true, "enables tracing; false makes program print uprobes to output")
+	leaveOn   = flag.Bool("leavetrace", false, "leave tracing on")
 )
 
 var filter MultiFlag
@@ -87,6 +89,10 @@ func cleanup() {
 	log.Println("disabling tracing... (this might take a while)")
 	err := pipew.Close()
 	err = os.Truncate(debugfs.UprobesEvents, 0)
+	if *leaveOn {
+		log.Println("leaving tracing enabled")
+		return
+	}
 	err = debugfs.Disable(debugfs.UprobesEnable)
 	if err != nil {
 		log.Fatal(err)
