@@ -1,3 +1,18 @@
+/*
+Gcdis: disassemble -S output from the Go gc toolchain.
+
+Gcdis reads standard input, scans for the dump from -S, and uses
+the tool to disassemble the bytes.
+
+Options:
+    -tool	name of the tool to use (default sparc64-none-elf-objdump)
+    -flags	flags to pass to the tool (default "-EB -m sparc:v9 -b binary -D")
+    -hex	print the bytes in hexadecimal (extract only the dump from the output)
+    -binary	print the raw bytes
+
+The file containing the raw bytes is passed as the last argument to
+the tool, after the flags.
+*/
 package main
 
 import (
@@ -22,7 +37,7 @@ var (
 	flagBinary = flag.Bool("binary", false, "print the binary")
 )
 
-var usageString = `usage: gcdis [[-tool toolname] [-flags flags]] | [-hex | -binary]
+var usageString = `usage: go tool compile -S file.go | gcdis [[-tool toolname] [-flags flags]] | [-hex | -binary]
 Options:
 `
 
