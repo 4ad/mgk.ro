@@ -1,7 +1,7 @@
 /*
-Gcdis: disassemble -S output from the Go gc toolchain.
+Godis: disassemble -S output from the Go gc toolchain.
 
-Gcdis reads standard input, scans for the dump from -S, and uses
+Godis reads standard input, scans for the dump from -S, and uses
 the tool to disassemble the bytes.
 
 Options:
