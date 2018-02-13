@@ -121,7 +121,7 @@ func main() {
 			host = host[:i]
 		}
 		go func() {
-			log.Fatal(http.ListenAndServeTLS(":https", *certDir+host+".crt", *keyDir+host+".key", nil))
+			log.Fatal(http.ListenAndServeTLS(":https", *certDir+"/"+host+".crt", *keyDir+"/"+host+".key", nil))
 		}()
 	}
 	log.Fatal(http.ListenAndServe(*addr, nil))
