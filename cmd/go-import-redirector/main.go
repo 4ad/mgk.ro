@@ -114,6 +114,11 @@ func main() {
 		host = host[:i]
 	}
 
+	certManager := autocert.Manager{
+		Prompt: autocert.AcceptTOS,
+		Cache:  autocert.DirCache("certs"),
+	}
+	go http.ListenAndServe(":80", certManager.HTTPHandler(nil))
 	log.Fatal(http.Serve(autocert.NewListener(host), nil))
 }
 
