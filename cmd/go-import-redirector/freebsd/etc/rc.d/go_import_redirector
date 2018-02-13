@@ -15,12 +15,12 @@ start_cmd=go_import_redirector_start
 stop_postcmd=go_import_redirector_cleanup
 
 go_import_redirector_start() {
-	%%TOUCH%% ${pidfile}
+	touch ${pidfile}
 	/usr/sbin/daemon -cf -p ${pidfile} ${viewvc_flags} ${command} ${go_import_redirector_flags}
 }
 
 go_import_redirector_cleanup() {
-	[ -f ${pidfile} ] && %%RM%% ${pidfile}
+	[ -f ${pidfile} ] && rm ${pidfile}
 }
 
 run_rc_command "$1"
