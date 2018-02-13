@@ -10,5 +10,9 @@ rcvar=go_import_redirector_enable
 
 command="/usr/local/sbin/go-import-redirector"
 
+pidfile="/var/run/${name}.pid"
+command="/usr/sbin/daemon"
+command_args="-c -f -P ${pidfile} -r /usr/local/sbin/${name}"
+
 load_rc_config $name
 run_rc_command "$1"
