@@ -44,7 +44,11 @@
 // The -addr option specifies the HTTP address to serve (default ``:http'').
 //
 // The -tls option causes go-import-redirector to serve HTTPS on port 443,
-// using Let’s Encrypt.
+// loading an X.509 certificate and key pair from files in the current directory
+// named after the host in the import path with .crt and .key appended
+// (for example, rsc.io.crt and rsc.io.key).
+// Like for http.ListenAndServeTLS, the certificate file should contain the
+// concatenation of the server's certificate and the signing certificate authority's certificate.
 //
 // The -vcs option specifies the version control system, git, hg, or svn (default ``git'').
 //
