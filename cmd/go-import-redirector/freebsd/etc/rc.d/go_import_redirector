@@ -7,12 +7,20 @@
 
 name=go_import_redirector
 rcvar=go_import_redirector_enable
-
-command="/usr/local/sbin/go-import-redirector"
+load_rc_config $name
 
 pidfile="/var/run/${name}.pid"
-command="/usr/sbin/daemon"
-command_args="-c -f -P ${pidfile} -r /usr/local/sbin/${name}"
+command="/usr/local/sbin/go-import-redirector"
+start_cmd=go_import_redirector_start
+stop_postcmd=go_import_redirector_cleanup
 
-load_rc_config $name
+go_import_redirector_start() {
+	%%TOUCH%% ${pidfile}
+	/usr/sbin/daemon -cf -p ${pidfile} ${viewvc_flags} ${command} ${go_import_redirector_flags}
+}
+
+go_import_redirector_cleanup() {
+	[ -f ${pidfile} ] && %%RM%% ${pidfile}
+}
+
 run_rc_command "$1"
