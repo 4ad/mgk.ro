@@ -43,12 +43,16 @@
 //
 // The -addr option specifies the HTTP address to serve (default ``:http'').
 //
-// The -tls option causes go-import-redirector to serve HTTPS on port 443,
-// loading an X.509 certificate and key pair from files in the current directory
-// named after the host in the import path with .crt and .key appended
-// (for example, rsc.io.crt and rsc.io.key).
-// Like for http.ListenAndServeTLS, the certificate file should contain the
-// concatenation of the server's certificate and the signing certificate authority's certificate.
+// The -tls option causes go-import-redirector to serve HTTPS on port
+// 443, loading an X.509 certificate and key pair from named after the
+// host in the import path with .crt and .key appended (for example,
+// rsc.io.crt and rsc.io.key).  Like for http.ListenAndServeTLS, the
+// certificate file should contain the concatenation of the server's
+// certificate and the signing certificate authority's certificate.
+//
+// The -certdir specifies the location of the certificate (default "/usr/local/etc/ssl").
+//
+// The -keydir specifies the location of the key (default "/usr/local/etc/ssl/private").
 //
 // The -vcs option specifies the version control system, git, hg, or svn (default ``git'').
 //
@@ -68,9 +72,14 @@ import (
 )
 
 var (
-	addr       = flag.String("addr", ":http", "serve http on `address`")
-	serveTLS   = flag.Bool("tls", false, "serve https on :443")
-	vcs        = flag.String("vcs", "git", "set version control `system`")
+	addr     = flag.String("addr", ":http", "serve http on `address`")
+	serveTLS = flag.Bool("tls", false, "serve https on :443")
+	vcs      = flag.String("vcs", "git", "set version control `system`")
+	certDir  = flag.String("certdir", "/usr/local/etc/ssl", "directory containing .crt file")
+	keyDir   = flag.String("keydir", "/usr/local/etc/ssl/private", "directory containing .key file")
+)
+
+var (
 	importPath string
 	repoPath   string
 	wildcard   bool
@@ -112,7 +121,7 @@ func main() {
 			host = host[:i]
 		}
 		go func() {
-			log.Fatal(http.ListenAndServeTLS(":https", host+".crt", host+".key", nil))
+			log.Fatal(http.ListenAndServeTLS(":https", *certDir+host+".crt", *keyDir+host+".key", nil))
 		}()
 	}
 	log.Fatal(http.ListenAndServe(*addr, nil))
