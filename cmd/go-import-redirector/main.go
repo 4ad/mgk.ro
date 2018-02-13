@@ -118,7 +118,7 @@ func main() {
 		Prompt: autocert.AcceptTOS,
 		Cache:  autocert.DirCache("certs"),
 	}
-	go http.ListenAndServe(":80", certManager.HTTPHandler(nil))
+	go log.Fatal(http.ListenAndServe(":80", certManager.HTTPHandler(nil)))
 	log.Fatal(http.Serve(autocert.NewListener(host), nil))
 }
 
