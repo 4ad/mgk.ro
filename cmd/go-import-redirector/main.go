@@ -61,17 +61,15 @@ import (
 	"strings"
 
 	_ "mgk.ro/log"
-
-	"golang.org/x/crypto/acme/autocert"
 )
 
 var (
-	addr             = flag.String("addr", ":http", "serve http on `address`")
-	serveTLS         = flag.Bool("tls", false, "serve https on :443")
-	vcs              = flag.String("vcs", "git", "set version control `system`")
-	importPath       string
-	repoPath         string
-	wildcard         bool
+	addr       = flag.String("addr", ":http", "serve http on `address`")
+	serveTLS   = flag.Bool("tls", false, "serve https on :443")
+	vcs        = flag.String("vcs", "git", "set version control `system`")
+	importPath string
+	repoPath   string
+	wildcard   bool
 )
 
 func usage() {
@@ -104,17 +102,16 @@ func main() {
 		repoPath = strings.TrimSuffix(repoPath, "/*")
 	}
 	http.HandleFunc(strings.TrimSuffix(importPath, "/")+"/", redirect)
-	http.HandleFunc(importPath+"/.ping", pong) // non-redirecting URL for debugging TLS certificates
-	if !*serveTLS {
-		log.Fatal(http.ListenAndServe(*addr, nil))
+	if *serveTLS {
+		host := importPath
+		if i := strings.Index(host, "/"); i >= 0 {
+			host = host[:i]
+		}
+		go func() {
+			log.Fatal(http.ListenAndServeTLS(":https", host+".crt", host+".key", nil))
+		}()
 	}
-
-	host := importPath
-	if i := strings.Index(host, "/"); i >= 0 {
-		host = host[:i]
-	}
-
-	log.Fatal(http.Serve(autocert.NewListener(host), nil))
+	log.Fatal(http.ListenAndServe(*addr, nil))
 }
 
 var tmpl = template.Must(template.New("main").Parse(`<!DOCTYPE html>
@@ -177,8 +174,4 @@ func redirect(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	w.Write(buf.Bytes())
-}
-
-func pong(w http.ResponseWriter, req *http.Request) {
-	fmt.Fprintf(w, "pong")
 }
