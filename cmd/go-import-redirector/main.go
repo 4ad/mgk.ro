@@ -121,7 +121,6 @@ func main() {
 		Prompt: autocert.AcceptTOS,
 		Cache:  autocert.DirCache("certs"),
 	}
-	go log.Fatal(http.ListenAndServe(":80", certManager.HTTPHandler(nil)))
 	server := &http.Server{
 		Addr:    ":443",
 		Handler: mux,
@@ -129,6 +128,7 @@ func main() {
 			GetCertificate: certManager.GetCertificate,
 		},
 	}
+	go log.Fatal(http.ListenAndServe(":80", certManager.HTTPHandler(nil)))
 	log.Fatal(server.ListenAndServeTLS("", ""))
 }
 
