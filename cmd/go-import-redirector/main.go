@@ -44,11 +44,7 @@
 // The -addr option specifies the HTTP address to serve (default ``:http'').
 //
 // The -tls option causes go-import-redirector to serve HTTPS on port 443,
-// loading an X.509 certificate and key pair from files in the current directory
-// named after the host in the import path with .crt and .key appended
-// (for example, rsc.io.crt and rsc.io.key).
-// Like for http.ListenAndServeTLS, the certificate file should contain the
-// concatenation of the server's certificate and the signing certificate authority's certificate.
+// using Let’s Encrypt.
 //
 // The -vcs option specifies the version control system, git, hg, or svn (default ``git'').
 //
@@ -66,14 +62,13 @@ import (
 
 	_ "mgk.ro/log"
 
-	"rsc.io/letsencrypt"
+	"golang.org/x/crypto/acme/autocert"
 )
 
 var (
 	addr             = flag.String("addr", ":http", "serve http on `address`")
 	serveTLS         = flag.Bool("tls", false, "serve https on :443")
 	vcs              = flag.String("vcs", "git", "set version control `system`")
-	letsEncryptEmail = flag.String("letsencrypt", "", "use lets encrypt to issue TLS certificate, agreeing to TOS as `email` (implies -tls)")
 	importPath       string
 	repoPath         string
 	wildcard         bool
@@ -119,17 +114,7 @@ func main() {
 		host = host[:i]
 	}
 
-	m := new(letsencrypt.Manager)
-	m.CacheFile("letsencrypt.cache")
-	m.SetHosts([]string{host})
-
-	if *letsEncryptEmail != "" && !m.Registered() {
-		if err := m.Register(*letsEncryptEmail, nil); err != nil {
-			log.Fatal(err)
-		}
-	}
-
-	log.Fatal(m.Serve())
+	log.Fatal(http.Serve(autocert.NewListener(host), nil))
 }
 
 var tmpl = template.Must(template.New("main").Parse(`<!DOCTYPE html>
