@@ -52,13 +52,6 @@
 //
 // The -vcs option specifies the version control system, git, hg, or svn (default ``git'').
 //
-// Deployment on Google Cloud Platform
-//
-// For the case of a redirector for an entire domain (such as rsc.io above),
-// the Makefile in this directory contains recipes to deploy a trivial VM running
-// just this program, using a static IP address that can be loaded into the
-// DNS configuration for the target domain.
-//
 package main
 
 import (
