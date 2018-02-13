@@ -1,0 +1,14 @@
+#!/bin/sh
+
+# PROVIDE: go_import_redirector
+# REQUIRE: DAEMON
+
+. /etc/rc.subr
+
+name=go_import_redirector
+rcvar=go_import_redirector_enable
+
+command="/usr/local/bin/go-import-redirector"
+
+load_rc_config $name
+run_rc_command "$1"

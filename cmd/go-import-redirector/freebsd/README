@@ -1,0 +1,4 @@
+Daemon startup files for FreeBSD.
+
+Copy etc/rc.d/go_import_redirector to
+/usr/local/etc/rc.d/go_import_redirector and enable it in /etc/rc.conf.
