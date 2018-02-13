@@ -52,7 +52,6 @@ package main
 
 import (
 	"bytes"
-	"crypto/tls"
 	"flag"
 	"fmt"
 	"html/template"
@@ -104,12 +103,10 @@ func main() {
 		importPath = strings.TrimSuffix(importPath, "/*")
 		repoPath = strings.TrimSuffix(repoPath, "/*")
 	}
-
-	mux := http.NewServeMux()
-	mux.HandleFunc(strings.TrimSuffix(importPath, "/")+"/", redirect)
-	mux.HandleFunc(importPath+"/.ping", pong) // non-redirecting URL for debugging TLS certificates
+	http.HandleFunc(strings.TrimSuffix(importPath, "/")+"/", redirect)
+	http.HandleFunc(importPath+"/.ping", pong) // non-redirecting URL for debugging TLS certificates
 	if !*serveTLS {
-		log.Fatal(http.ListenAndServe(*addr, mux))
+		log.Fatal(http.ListenAndServe(*addr, nil))
 	}
 
 	host := importPath
@@ -117,19 +114,7 @@ func main() {
 		host = host[:i]
 	}
 
-	certManager := autocert.Manager{
-		Prompt: autocert.AcceptTOS,
-		Cache:  autocert.DirCache("certs"),
-	}
-	server := &http.Server{
-		Addr:    ":443",
-		Handler: mux,
-		TLSConfig: &tls.Config{
-			GetCertificate: certManager.GetCertificate,
-		},
-	}
-	go log.Fatal(http.ListenAndServe(":80", certManager.HTTPHandler(nil)))
-	log.Fatal(server.ListenAndServeTLS("", ""))
+	log.Fatal(http.Serve(autocert.NewListener(host), nil))
 }
 
 var tmpl = template.Must(template.New("main").Parse(`<!DOCTYPE html>
