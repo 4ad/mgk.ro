@@ -1,9 +1,9 @@
-// Copyright (c) 2012 Aram Hăvărneanu <aram@mgk.ro>
-// 
+// Copyright (c) 2012, 2018 Aram Hăvărneanu <aram@mgk.ro>
+//
 // Permission to use, copy, modify, and distribute this software for any
 // purpose with or without fee is hereby granted, provided that the above
 // copyright notice and this permission notice appear in all copies.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
 // WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
@@ -14,7 +14,7 @@
 
 /*
 Lsr: list recursively.
-	lsr [-d | -fd] [name ...]
+	lsr [-d | -fd] [-l] [-n] [name ...]
 
 For each directory argument, lsr recursively lists the contents of the
 directory; for each file argument, lsr repeats its name. When no argument
@@ -24,6 +24,7 @@ Options:
     -d  only print directories
     -fd print both files and directories
     -l  list in long format; name mode mtime size
+    -n don't print hidden files or directories
 */
 package main
 
@@ -41,9 +42,10 @@ var (
 	flagD  = flag.Bool("d", false, "only print directories")
 	flagFD = flag.Bool("fd", false, "print both files and directories")
 	flagL  = flag.Bool("l", false, "long format")
+	flagN  = flag.Bool("n", false, "don't print hidden files")
 )
 
-var usageString = `usage: lsr [-d | -fd | -l] [name ...]
+var usageString = `usage: lsr [-d | -fd] [-l] [-n] [name ...]
 Options:
 `
 
@@ -56,6 +58,15 @@ func usage() {
 func prname(path string, f os.FileInfo) error {
 	if f.IsDir() && path[len(path)-1] != '/' {
 		path = path + "/"
+	}
+	if *flagN {
+		ok, err := filepath.Match(".?*", filepath.Base(path))
+		if ok {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
 	}
 	if *flagL {
 		mode := f.Mode() & 0x1FF
@@ -72,6 +83,15 @@ func pr(path string, f os.FileInfo, err error) error {
 	if err != nil {
 		log.Println(err)
 		return nil
+	}
+	if *flagN && f.IsDir() {
+		ok, err := filepath.Match(".?*", filepath.Base(path))
+		if ok {
+			return filepath.SkipDir
+		}
+		if err != nil {
+			return err
+		}
 	}
 	if *flagFD {
 		return prname(path, f)
