@@ -1,9 +1,9 @@
 // Copyright (c) 2017 Aram Hăvărneanu <aram@mgk.ro>
-// 
+//
 // Permission to use, copy, modify, and distribute this software for any
 // purpose with or without fee is hereby granted, provided that the above
 // copyright notice and this permission notice appear in all copies.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
 // WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
@@ -76,7 +76,7 @@ func main() {
 		`; export GOTRACEBACK="system"` +
 		`; export GOOS="solaris"` +
 		`; export GOARCH="sparc64"` +
-//		`; export GODEBUG="gcstackbarrierall=1"` +
+		//		`; export GODEBUG="gcstackbarrierall=1"` +
 		`; cd "` + targetCwd + `"` +
 		"; '" + targetBin + "' " + strings.Join(os.Args[2:], " ")
 	err := ssh(cmd)

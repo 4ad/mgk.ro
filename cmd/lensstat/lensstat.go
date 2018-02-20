@@ -1,9 +1,9 @@
 // Copyright (c) 2017 Aram Hăvărneanu <aram@mgk.ro>
-// 
+//
 // Permission to use, copy, modify, and distribute this software for any
 // purpose with or without fee is hereby granted, provided that the above
 // copyright notice and this permission notice appear in all copies.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
 // WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
@@ -19,8 +19,8 @@ import (
 	"encoding/csv"
 	"flag"
 	"fmt"
-	"log"
 	"io"
+	"log"
 	"os"
 	"os/exec"
 	"regexp"
@@ -51,11 +51,11 @@ func main() {
 
 	var keys []int
 	for k := range count {
-	    keys = append(keys, k)
+		keys = append(keys, k)
 	}
 	sort.Ints(keys)
 	for _, k := range keys {
-	    fmt.Printf("%6d |%-62s %4d\n", k, stars(count[k], max), count[k])
+		fmt.Printf("%6d |%-62s %4d\n", k, stars(count[k], max), count[k])
 	}
 }
 
@@ -101,7 +101,7 @@ func maxval(m map[int]int) int {
 
 func stars(val, max int) (s string) {
 	for i := 0; i < val*62/max; i++ {
-		s = s+"@"
+		s = s + "@"
 	}
 	return s
 }
