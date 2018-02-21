@@ -78,7 +78,7 @@ type MediaWiki struct {
 // New returns a new HTTP handler that serves the mediawiki
 // installed at root using the PHP CGI executable specified by
 // php. The handler should be installed at urlprefix.
-func New(root, urlprefix, php string) *MediaWiki {
+func New(root, urlprefix, php string) http.Handler {
 	mw := &MediaWiki{
 		Root:             root,
 		URLPrefix:        urlprefix,
@@ -109,8 +109,8 @@ func New(root, urlprefix, php string) *MediaWiki {
 // getFileName validates the HTTP request, rejecting access to
 // non-whitelisted scripts or static assets. It returns the canonicalized
 // path to the script or resource, or an error.
-func (mw *MediaWiki) getFileName(w http.ResponseWriter, r *http.Request) (string, error) {
-	file, err := filepath.Rel(mw.URLPrefix, r.URL.Path)
+func (mw *MediaWiki) getFileName(path string) (string, error) {
+	file, err := filepath.Rel(mw.URLPrefix, path)
 	if err != nil {
 		return "", errBadRequest
 	}
@@ -142,8 +142,9 @@ noindex:
 	return "", errForbidden
 }
 
+// ServeHTTP implements http.Handler.
 func (mw *MediaWiki) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	file, err := mw.getFileName(w, r)
+	file, err := mw.getFileName(r.URL.Path)
 	if err != nil {
 		httpReturnError(w, err)
 		return
