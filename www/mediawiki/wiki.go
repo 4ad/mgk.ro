@@ -12,7 +12,7 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-// Package mediawiki provides access to mediawiki installations to Go
+// Package mediawiki provides access to MediaWiki installations to Go
 // web servers via CGI.
 package mediawiki // import "mgk.ro/www/mediawiki"
 
@@ -63,8 +63,8 @@ func httpReturnError(w http.ResponseWriter, err error) {
 	}
 }
 
-// A *Mediawiki is an http.Handler that serves a mediawiki instance.
-type Mediawiki struct {
+// A *MediaWiki is an http.Handler that serves a mediawiki instance.
+type MediaWiki struct {
 	Root      string // directory containing Mediawiki files
 	URLPrefix string // the URL prefix used for accessing the wiki
 	PHPExe    string // php-cgi executable
@@ -78,8 +78,8 @@ type Mediawiki struct {
 // New returns a new HTTP handler that serves the mediawiki
 // installed at root using the PHP CGI executable specified by
 // php. The handler should be installed at urlprefix.
-func New(root, urlprefix, php string) *Mediawiki {
-	mw := &Mediawiki{
+func New(root, urlprefix, php string) *MediaWiki {
+	mw := &MediaWiki{
 		Root:             root,
 		URLPrefix:        urlprefix,
 		PHPExe:           php,
@@ -109,7 +109,7 @@ func New(root, urlprefix, php string) *Mediawiki {
 // getFileName validates the HTTP request, rejecting access to
 // non-whitelisted scripts or static assets. It returns the canonicalized
 // path to the script or resource, or an error.
-func (mw *Mediawiki) getFileName(w http.ResponseWriter, r *http.Request) (string, error) {
+func (mw *MediaWiki) getFileName(w http.ResponseWriter, r *http.Request) (string, error) {
 	file, err := filepath.Rel(mw.URLPrefix, r.URL.Path)
 	if err != nil {
 		return "", errBadRequest
@@ -142,7 +142,7 @@ noindex:
 	return "", errForbidden
 }
 
-func (mw *Mediawiki) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (mw *MediaWiki) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	file, err := mw.getFileName(w, r)
 	if err != nil {
 		httpReturnError(w, err)
