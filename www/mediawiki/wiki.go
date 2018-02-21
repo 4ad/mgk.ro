@@ -12,6 +12,8 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+// Package mediawiki provides access to mediawiki installations to Go
+// web servers via CGI.
 package mediawiki // import "mgk.ro/www/mediawiki"
 
 import (
