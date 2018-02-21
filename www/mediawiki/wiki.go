@@ -37,8 +37,8 @@ const (
 	PHPWhitelistDirs = "/"
 
 	// only serve static assets from these directories (relative
-	// to the mediawiki installation directory) and their children,
-	// recursively.
+	// to the mediawiki installation directory) and from their
+	// children, recursively.
 	AssetWhitelistDirsRecursive = "/resources:/skins"
 )
 
@@ -161,7 +161,7 @@ func (mw *Mediawiki) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				"SCRIPT_FILENAME=" + file,
 
 				// Unsure what this variable should to be set to. Leaving it
-				// unset causes PHP to become confused about it's own URL.
+				// unset causes PHP to become confused about its own URL.
 				// Making it set, but empty, seems to work.
 				"SCRIPT_NAME=",
 
