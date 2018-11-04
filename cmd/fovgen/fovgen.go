@@ -13,7 +13,7 @@
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 /*
-Fovgen generates https://xw.is/wiki/Focal_lens_equivalents_between_formats.
+Fovgen generates https://xw.is/wiki/Focal_length_equivalents_between_formats.
 */
 package main
 
