@@ -3,11 +3,16 @@ package main
 import (
 	"fmt"
 	"math"
+	"os"
 )
 
 type sensor struct {
 	h, v float64
 	name string
+}
+
+func (s sensor) String() string {
+	return s.name
 }
 
 func (s sensor) AspectRatio() float64 {
@@ -36,13 +41,13 @@ var sensors = []sensor{
 	sensorLF810,
 }
 
-type lens struct {
+type Lens struct {
 	focal float64
 	tc    float64 // like HTS 1.5
 	mfg   string
 }
 
-func (l lens) String() string {
+func (l Lens) String() string {
 	var s string
 	if l.mfg != "" {
 		s = l.mfg + " "
@@ -54,14 +59,14 @@ func (l lens) String() string {
 	return s + fmt.Sprintf(" (*%.1f)", l.tc)
 }
 
-func (l lens) Focal() float64 {
+func (l Lens) Focal() float64 {
 	if l.tc != 0 {
 		return l.focal * l.tc
 	}
 	return l.focal
 }
 
-var lensesAPSC = []lens{
+var lensesAPSC = []Lens{
 	{focal: 10},
 	{focal: 14},
 	{focal: 16},
@@ -76,7 +81,7 @@ var lensesAPSC = []lens{
 	{focal: 200},
 }
 
-var lensesFF = []lens{
+var lensesFF = []Lens{
 	{focal: 14},
 	{focal: 16},
 	{focal: 17},
@@ -93,7 +98,7 @@ var lensesFF = []lens{
 	{focal: 200},
 }
 
-var lensesGFX = []lens{
+var lensesGFX = []Lens{
 	{focal: 23},
 	{focal: 32},
 	{focal: 45},
@@ -105,7 +110,7 @@ var lensesGFX = []lens{
 	{focal: 250},
 }
 
-var lensesPentax = []lens{
+var lensesPentax = []Lens{
 	{focal: 25},
 	{focal: 28},
 	{focal: 33},
@@ -119,7 +124,7 @@ var lensesPentax = []lens{
 	{focal: 300},
 }
 
-var lensesHasselblad = []lens{
+var lensesHasselblad = []Lens{
 	{focal: 24},
 	{focal: 28},
 	{focal: 35},
@@ -148,7 +153,7 @@ func init() {
 	}
 }
 
-var lensesLF = []lens{
+var lensesLF = []Lens{
 	{focal: 72},
 	{focal: 90},
 	{focal: 150},
@@ -156,7 +161,7 @@ var lensesLF = []lens{
 	{focal: 300},
 }
 
-var lensesLF810 = []lens{
+var lensesLF810 = []Lens{
 	{focal: 150},
 	{focal: 240},
 	{focal: 300},
@@ -166,7 +171,7 @@ var lensesLF810 = []lens{
 
 type camera struct {
 	sensor
-	lenses *[]lens
+	lenses *[]Lens
 	Name   string
 }
 
@@ -199,7 +204,7 @@ func fov(ssize, focal float64) float64 {
 }
 
 type lensInfo struct {
-	lens
+	Lens
 	HFoV float64
 	VFoV float64
 	EqW  map[sensor]float64
@@ -209,31 +214,31 @@ type lensInfo struct {
 
 func (la lensInfo) String() string {
 	var s string
-	s = fmt.Sprintf("|%v\n|%.1f\n|%.1f", la.lens, la.HFoV, la.VFoV)
+	s = fmt.Sprintf("|%v\n|%.1f\n|%.1f", la.Lens, la.HFoV, la.VFoV)
 	for _, m := range sensors {
 		s += fmt.Sprintf("\n|%.0f", la.EqW[m])
 	}
 	return s
 }
 
-func equivalentW(l lens, s sensor, starg sensor) float64 {
+func equivalentW(l Lens, s sensor, starg sensor) float64 {
 	if s.AspectRatio() <= starg.AspectRatio() {
 		return l.Focal() * starg.v / s.v
 	}
 	return l.Focal() * starg.h / s.h
 }
 
-func equivalentH(l lens, s sensor, starg sensor) float64 {
+func equivalentH(l Lens, s sensor, starg sensor) float64 {
 	return l.Focal() * starg.h / s.h
 }
 
-func equivalentV(l lens, s sensor, starg sensor) float64 {
+func equivalentV(l Lens, s sensor, starg sensor) float64 {
 	return l.Focal() * starg.v / s.v
 }
 
 type cameraInfo struct {
 	camera
-	lenses []lensInfo
+	Lenses []lensInfo
 }
 
 func (ci cameraInfo) String() string {
@@ -249,7 +254,7 @@ func (ci cameraInfo) String() string {
 	for _, m := range sensors {
 		s += fmt.Sprintf("|%s\n", m.name)
 	}
-	for _, l := range ci.lenses {
+	for _, l := range ci.Lenses {
 		s += fmt.Sprintf("|-\n%s\n", l)
 	}
 
@@ -258,12 +263,18 @@ func (ci cameraInfo) String() string {
 	return s
 }
 
+type tables struct {
+	CameraInfo []cameraInfo
+	Sensors []sensor
+}
+
 func main() {
+	tbl := tables{Sensors: sensors}
 	for _, c := range cameras {
 		ci := cameraInfo{c, nil}
 		lensInfos := []lensInfo{}
 		for _, lens := range *c.lenses {
-			li := lensInfo{lens: lens}
+			li := lensInfo{Lens: lens}
 			li.HFoV = fov(c.sensor.h, lens.Focal())
 			li.VFoV = fov(c.sensor.v, lens.Focal())
 
@@ -278,7 +289,11 @@ func main() {
 
 			lensInfos = append(lensInfos, li)
 		}
-		ci.lenses = lensInfos
-//		fmt.Println(ci)
+		ci.Lenses = lensInfos
+		tbl.CameraInfo = append(tbl.CameraInfo, ci)
+	}
+	err := wiki.Execute(os.Stdout, tbl)
+	if err != nil {
+		panic(err)
 	}
 }
