@@ -25,11 +25,11 @@ const wikiPage = `
 
 The tables below lists the focal length equivalents between different formats.
 
-The wide tables are keeping track of aspect ratios, such that every format can fit into any target format. In other words the equivalent format is strictly wider.
+The wide tables are keeping track of aspect ratios, such that every format can fit into any target format. In other words the equivalent format is strictly wider, so from the target format you might need to crop to get the original framing.
 
-The horizontal tables take into account only the horizontal field of view.
+The horizontal tables only take into account the horizontal field of view.
 
-The vertical tables take into account only the vertical field of view.
+The vertical tables only take into account the vertical field of view.
 
 == Focal lens equivalents ==
 
