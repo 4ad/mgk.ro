@@ -50,8 +50,8 @@ The vertical tables take into account only the vertical field of view.
 {{- range .Lenses }}
 |-
 |{{.Lens}}
-|{{printf "%.1f" .HFoV}}
-|{{printf "%.1f" .VFoV}} {{$li := .}}
+|{{printf "%.1f°" .HFoV}}
+|{{printf "%.1f°" .VFoV}} {{$li := .}}
 {{- range $s := $sensors}}
 |{{index $li.EqW $s | printf "%.0f"}}
 {{- end}}
@@ -70,8 +70,8 @@ The vertical tables take into account only the vertical field of view.
 {{- range .Lenses }}
 |-
 |{{.Lens}}
-|{{printf "%.1f" .HFoV}}
-|{{printf "%.1f" .VFoV}} {{$li := .}}
+|{{printf "%.1f°" .HFoV}}
+|{{printf "%.1f°" .VFoV}} {{$li := .}}
 {{- range $s := $sensors}}
 |{{index $li.EqH $s | printf "%.0f"}}
 {{- end}}
@@ -90,8 +90,8 @@ The vertical tables take into account only the vertical field of view.
 {{- range .Lenses }}
 |-
 |{{.Lens}}
-|{{printf "%.1f" .HFoV}}
-|{{printf "%.1f" .VFoV}} {{$li := .}}
+|{{printf "%.1f°" .HFoV}}
+|{{printf "%.1f°" .VFoV}} {{$li := .}}
 {{- range $s := $sensors}}
 |{{index $li.EqV $s | printf "%.0f"}}
 {{- end}}
