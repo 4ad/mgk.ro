@@ -212,15 +212,6 @@ type lensInfo struct {
 	EqV  map[sensor]float64
 }
 
-func (la lensInfo) String() string {
-	var s string
-	s = fmt.Sprintf("|%v\n|%.1f\n|%.1f", la.Lens, la.HFoV, la.VFoV)
-	for _, m := range sensors {
-		s += fmt.Sprintf("\n|%.0f", la.EqW[m])
-	}
-	return s
-}
-
 func equivalentW(l Lens, s sensor, starg sensor) float64 {
 	if s.AspectRatio() <= starg.AspectRatio() {
 		return l.Focal() * starg.v / s.v
@@ -241,31 +232,9 @@ type cameraInfo struct {
 	Lenses []lensInfo
 }
 
-func (ci cameraInfo) String() string {
-	s := fmt.Sprintf("=== %s ===\n", ci.Name)
-
-	s += `{| class="wikitable"` + "\n"
-	s += "|+" + ci.Name + "\n"
-
-	s += fmt.Sprintf("|-\n")
-	s += fmt.Sprintf("|Focal length\n")
-	s += fmt.Sprintf("|Horizontal FOV\n")
-	s += fmt.Sprintf("|Vertical FOV\n")
-	for _, m := range sensors {
-		s += fmt.Sprintf("|%s\n", m.name)
-	}
-	for _, l := range ci.Lenses {
-		s += fmt.Sprintf("|-\n%s\n", l)
-	}
-
-	s += "|}"
-
-	return s
-}
-
 type tables struct {
 	CameraInfo []cameraInfo
-	Sensors []sensor
+	Sensors    []sensor
 }
 
 func main() {
