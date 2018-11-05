@@ -46,6 +46,7 @@ var (
 	sensorMF4937TS = sensor{49.1 / 1.5, 36.8 / 1.5, "HxD-39/50(HTS)"}
 	sensorMF5440TS = sensor{53.7 / 1.5, 40.2 / 1.5, "HxD-60/100(HTS)"}
 	sensorLF45     = sensor{127, 102, "4x5"}
+	sensorLF57     = sensor{177.8, 127, "5x7"}
 	sensorLF617    = sensor{170, 60, "6x17"}
 	sensorLF810    = sensor{254, 203, "8x10"}
 )
@@ -60,6 +61,7 @@ var sensors = []sensor{
 	sensorMF4937TS,
 	sensorMF5440TS,
 	sensorLF45,
+	sensorLF57,
 	sensorLF617,
 	sensorLF810,
 }
