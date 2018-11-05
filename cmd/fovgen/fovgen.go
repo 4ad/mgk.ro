@@ -176,18 +176,35 @@ func init() {
 	}
 }
 
-var lensesLF = []Lens{
+var lensesLF45 = []Lens{
+	{focal: 47},
+	{focal: 65},
 	{focal: 72},
 	{focal: 90},
 	{focal: 150},
+	{focal: 180},
+	{focal: 210},
+	{focal: 240},
+	{focal: 300},
+}
+
+var lensesLF617 = []Lens{
+	{focal: 72},
+	{focal: 90},
+	{focal: 150},
+	{focal: 180},
+	{focal: 210},
 	{focal: 240},
 	{focal: 300},
 }
 
 var lensesLF810 = []Lens{
+	{focal: 120},
 	{focal: 150},
+	{focal: 210},
 	{focal: 240},
 	{focal: 300},
+	{focal: 360},
 	{focal: 450},
 	{focal: 600},
 }
@@ -205,8 +222,8 @@ var (
 	cameraPentax       = camera{sensorMF4433, &lensesPentax, "Pentax 645"}
 	cameraHasselblad60 = camera{sensorMF5440, &lensesHasselblad, "Hasselblad H5D-60"}
 	cameraHasselblad50 = camera{sensorMF4937, &lensesHasselblad, "Hasselblad H5D-50"}
-	cameraLF45         = camera{sensorLF45, &lensesLF, "Large format (4x5)"}
-	cameraLF617        = camera{sensorLF617, &lensesLF, "Large format (6x17)"}
+	cameraLF45         = camera{sensorLF45, &lensesLF45, "Large format (4x5)"}
+	cameraLF617        = camera{sensorLF617, &lensesLF617, "Large format (6x17)"}
 	cameraLF810        = camera{sensorLF810, &lensesLF810, "Large format (8x10)"}
 )
 
