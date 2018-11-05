@@ -42,7 +42,7 @@ var (
 	sensorMF4433 = sensor{43.8, 32.8, "Fuji GFX/Pentax 645"}
 	sensorMF4937 = sensor{49.1, 36.8, "HxD-39/50"}
 	sensorMF5440 = sensor{53.7, 40.2, "HxD-60/100"}
-	sensorMF4433TS = sensor{43.8/1.5, 32.8/1.5, "Fuji GFX/Pentax 645 (HTS)"}
+	sensorMF4433TS = sensor{43.8/1.5, 32.8/1.5, "Fuji GFX (HTS)"}
 	sensorMF4937TS = sensor{49.1/1.5, 36.8/1.5, "HxD-39/50(HTS)"}
 	sensorMF5440TS = sensor{53.7/1.5, 40.2/1.5, "HxD-60/100(HTS)"}
 	sensorLF45   = sensor{127, 102, "4x5"}
