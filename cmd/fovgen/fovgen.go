@@ -37,17 +37,17 @@ func (s sensor) AspectRatio() float64 {
 }
 
 var (
-	sensorAPSC   = sensor{25.1, 16.7, "APS-C"}
-	sensorFF     = sensor{36, 24, "35mm"}
-	sensorMF4433 = sensor{43.8, 32.8, "Fuji GFX/Pentax 645"}
-	sensorMF4937 = sensor{49.1, 36.8, "HxD-39/50"}
-	sensorMF5440 = sensor{53.7, 40.2, "HxD-60/100"}
-	sensorMF4433TS = sensor{43.8/1.5, 32.8/1.5, "Fuji GFX (HTS)"}
-	sensorMF4937TS = sensor{49.1/1.5, 36.8/1.5, "HxD-39/50(HTS)"}
-	sensorMF5440TS = sensor{53.7/1.5, 40.2/1.5, "HxD-60/100(HTS)"}
-	sensorLF45   = sensor{127, 102, "4x5"}
-	sensorLF617  = sensor{170, 60, "6x17"}
-	sensorLF810  = sensor{254, 203, "8x10"}
+	sensorAPSC     = sensor{25.1, 16.7, "APS-C"}
+	sensorFF       = sensor{36, 24, "35mm"}
+	sensorMF4433   = sensor{43.8, 32.8, "Fuji GFX/Pentax 645"}
+	sensorMF4937   = sensor{49.1, 36.8, "HxD-39/50"}
+	sensorMF5440   = sensor{53.7, 40.2, "HxD-60/100"}
+	sensorMF4433TS = sensor{43.8 / 1.5, 32.8 / 1.5, "Fuji GFX (HTS)"}
+	sensorMF4937TS = sensor{49.1 / 1.5, 36.8 / 1.5, "HxD-39/50(HTS)"}
+	sensorMF5440TS = sensor{53.7 / 1.5, 40.2 / 1.5, "HxD-60/100(HTS)"}
+	sensorLF45     = sensor{127, 102, "4x5"}
+	sensorLF617    = sensor{170, 60, "6x17"}
+	sensorLF810    = sensor{254, 203, "8x10"}
 )
 
 var sensors = []sensor{
@@ -206,7 +206,7 @@ var (
 	cameraHasselblad60 = camera{sensorMF5440, &lensesHasselblad, "Hasselblad H5D-60"}
 	cameraHasselblad50 = camera{sensorMF4937, &lensesHasselblad, "Hasselblad H5D-50"}
 	cameraLF45         = camera{sensorLF45, &lensesLF, "Large format (4x5)"}
-	cameraLF617        = camera{sensorLF617, &lensesLF, "Large format"}
+	cameraLF617        = camera{sensorLF617, &lensesLF, "Large format (6x17)"}
 	cameraLF810        = camera{sensorLF810, &lensesLF810, "Large format (8x10)"}
 )
 
