@@ -38,7 +38,6 @@ The vertical tables only take into account the vertical field of view.
 {{range .CameraInfo}}
 === {{.Name}} ===
 
-==== Wide ====
 {| class="wikitable"
 |+ {{.Name}} (wide)
 |-
@@ -59,7 +58,6 @@ The vertical tables only take into account the vertical field of view.
 {{- end}}
 |}
 
-==== Horizontal ====
 {| class="wikitable"
 |+ {{.Name}} (horizontal)
 |-
@@ -80,7 +78,6 @@ The vertical tables only take into account the vertical field of view.
 {{- end}}
 |}
 
-==== Vertical ====
 {| class="wikitable"
 |+ {{.Name}} (vertical)
 |-
