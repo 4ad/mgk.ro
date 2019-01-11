@@ -39,6 +39,8 @@ func (s sensor) AspectRatio() float64 {
 var (
 	sensorAPSC     = sensor{25.1, 16.7, "APS-C"}
 	sensorFF       = sensor{36, 24, "35mm"}
+	sensorFF43     = sensor{32, 24, "35mm (4:3 crop)"}
+	sensorFF54     = sensor{30, 24, "35mm (5:4 crop)"}
 	sensorMF4433   = sensor{43.8, 32.8, "Fuji GFX"} // also Pentax 645
 	sensorMF4937   = sensor{49.1, 36.8, "HxD-39/50"}
 	sensorMF5440   = sensor{53.7, 40.2, "HxD-60/100"}
@@ -58,6 +60,8 @@ var (
 var sensors = []sensor{
 	sensorAPSC,
 	sensorFF,
+	// sensorFF43 is intentionally missing; we only care about conversions *from* this crop
+	// sensorFF54 is intentionally missing; we only care about conversions *from* this crop
 	sensorMF4433,
 	sensorMF4937,
 	sensorMF5440,
@@ -285,6 +289,8 @@ type camera struct {
 var (
 	cameraAPSC         = camera{sensorAPSC, &lensesAPSC, "APS-C"}
 	cameraFF           = camera{sensorFF, &lensesFF, "35mm full frame"}
+	cameraFF43         = camera{sensorFF43, &lensesFF, "35mm full frame (4:3 crop)"}
+	cameraFF54         = camera{sensorFF54, &lensesFF, "35mm full frame (5:4 crop)"}
 	cameraGFX          = camera{sensorMF4433, &lensesGFX, "Fuji GFX"}
 	cameraPentax       = camera{sensorMF4433, &lensesPentax, "Pentax 645"}
 	cameraHasselblad60 = camera{sensorMF5440, &lensesHasselblad, "Hasselblad H5D-60"}
@@ -301,6 +307,8 @@ var (
 // Cameras are wiki sections.
 var cameras = []camera{
 	cameraFF,
+	cameraFF43,
+	cameraFF54,
 	cameraAPSC,
 	cameraGFX,
 	cameraPentax,
