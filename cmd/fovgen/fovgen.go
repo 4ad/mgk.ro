@@ -41,9 +41,12 @@ var (
 	sensorFF       = sensor{36, 24, "35mm"}
 	sensorFF43     = sensor{32, 24, "35mm (4:3 crop)"}
 	sensorFF54     = sensor{30, 24, "35mm (5:4 crop)"}
-	sensorMF4433   = sensor{43.8, 32.8, "Fuji GFX"} // also Pentax 645
+	sensorMF4433   = sensor{43.8, 32.8, "Fuji GFX"}          // also Pentax 645
+	sensorMF4133   = sensor{41, 32.8, "Fuji GFX (5:4 crop)"} // also Pentax 645
 	sensorMF4937   = sensor{49.1, 36.8, "HxD-39/50"}
+	sensorMF4637   = sensor{46, 36.8, "HxD-39/50 (5:4 crop)"}
 	sensorMF5440   = sensor{53.7, 40.2, "HxD-60/100"}
+	sensorMF5040   = sensor{50.25, 40.2, "HxD-60/100 (5:4 crop)"}
 	sensorMF4433TS = sensor{43.8 / 1.5, 32.8 / 1.5, "Fuji GFX (HTS)"}
 	sensorMF4937TS = sensor{49.1 / 1.5, 36.8 / 1.5, "HxD-39/50 (HTS)"}
 	sensorMF5440TS = sensor{53.7 / 1.5, 40.2 / 1.5, "HxD-60/100 (HTS)"}
@@ -56,22 +59,26 @@ var (
 	sensorLF1220   = sensor{508, 304, "12x20"}
 )
 
-// sensors are table columns.
+// Sensors are table columns. Some are intentionally missing, in those
+// cases we only care about conversions *from* that format.
 var sensors = []sensor{
 	sensorAPSC,
 	sensorFF,
-	// sensorFF43 is intentionally missing; we only care about conversions *from* this crop
-	// sensorFF54 is intentionally missing; we only care about conversions *from* this crop
+	// sensorFF43
+	// sensorFF54
 	sensorMF4433,
+	// sensorMF4133
 	sensorMF4937,
+	// sensorMF4637
 	sensorMF5440,
+	// sensorMF5040
 	sensorMF4433TS,
 	sensorMF4937TS,
 	sensorMF5440TS,
 	sensorLF45,
 	sensorLF57,
 	sensorLF617,
-	// sensorLF610 is intentionally missing; we only care about conversions *from* 6x10
+	// sensorLF610
 	sensorLF810,
 	sensorLF1114,
 	sensorLF1220,
@@ -287,21 +294,25 @@ type camera struct {
 }
 
 var (
-	cameraAPSC         = camera{sensorAPSC, &lensesAPSC, "APS-C"}
-	cameraFF           = camera{sensorFF, &lensesFF, "35mm full frame"}
-	cameraFF43         = camera{sensorFF43, &lensesFF, "35mm full frame (4:3 crop)"}
-	cameraFF54         = camera{sensorFF54, &lensesFF, "35mm full frame (5:4 crop)"}
-	cameraGFX          = camera{sensorMF4433, &lensesGFX, "Fuji GFX"}
-	cameraPentax       = camera{sensorMF4433, &lensesPentax, "Pentax 645"}
-	cameraHasselblad60 = camera{sensorMF5440, &lensesHasselblad, "Hasselblad H5D-60"}
-	cameraHasselblad50 = camera{sensorMF4937, &lensesHasselblad, "Hasselblad H5D-50"}
-	cameraLF45         = camera{sensorLF45, &lensesLF45, "Large format (4x5)"}
-	cameraLF57         = camera{sensorLF57, &lensesLF57, "Large format (5x7)"}
-	cameraLF617        = camera{sensorLF617, &lensesLF617, "Large format (6x17)"}
-	cameraLF610        = camera{sensorLF610, &lensesLF610, "Large format (6x10)"}
-	cameraLF810        = camera{sensorLF810, &lensesLF810, "Large format (8x10)"}
-	cameraLF1114       = camera{sensorLF1114, &lensesLF1114, "Large format (11x14)"}
-	cameraLF1220       = camera{sensorLF1220, &lensesLF1220, "Large format (12x20)"}
+	cameraAPSC     = camera{sensorAPSC, &lensesAPSC, "APS-C"}
+	cameraFF       = camera{sensorFF, &lensesFF, "35mm full frame"}
+	cameraFF43     = camera{sensorFF43, &lensesFF, "35mm full frame (4:3 crop)"}
+	cameraFF54     = camera{sensorFF54, &lensesFF, "35mm full frame (5:4 crop)"}
+	cameraGFX      = camera{sensorMF4433, &lensesGFX, "Fuji GFX"}
+	cameraGFX54    = camera{sensorMF4133, &lensesGFX, "Fuji GFX (5:4 crop)"}
+	cameraPentax   = camera{sensorMF4433, &lensesPentax, "Pentax 645"}
+	cameraPentax54 = camera{sensorMF4133, &lensesPentax, "Pentax 645 (5:4 crop)"}
+	cameraHass60   = camera{sensorMF5440, &lensesHasselblad, "Hasselblad H5D-60"}
+	cameraHass6054 = camera{sensorMF5040, &lensesHasselblad, "Hasselblad H5D-60 (5:4 crop)"}
+	cameraHass50   = camera{sensorMF4937, &lensesHasselblad, "Hasselblad H5D-50"}
+	cameraHass5054 = camera{sensorMF4637, &lensesHasselblad, "Hasselblad H5D-50 (5:4 crop)"}
+	cameraLF45     = camera{sensorLF45, &lensesLF45, "Large format (4x5)"}
+	cameraLF57     = camera{sensorLF57, &lensesLF57, "Large format (5x7)"}
+	cameraLF617    = camera{sensorLF617, &lensesLF617, "Large format (6x17)"}
+	cameraLF610    = camera{sensorLF610, &lensesLF610, "Large format (6x10)"}
+	cameraLF810    = camera{sensorLF810, &lensesLF810, "Large format (8x10)"}
+	cameraLF1114   = camera{sensorLF1114, &lensesLF1114, "Large format (11x14)"}
+	cameraLF1220   = camera{sensorLF1220, &lensesLF1220, "Large format (12x20)"}
 )
 
 // Cameras are wiki sections.
@@ -312,8 +323,10 @@ var cameras = []camera{
 	cameraAPSC,
 	cameraGFX,
 	cameraPentax,
-	cameraHasselblad50,
-	cameraHasselblad60,
+	cameraHass50,
+	cameraHass5054,
+	cameraHass60,
+	cameraHass6054,
 	cameraLF617,
 	cameraLF45,
 	cameraLF57,
