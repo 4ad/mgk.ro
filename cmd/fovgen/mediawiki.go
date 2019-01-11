@@ -33,7 +33,7 @@ The vertical tables only take into account the vertical field of view.
 
 Many equivalency tables take into account the diagonal field of view, but I think that's a pointless comparison. You usually have some lens/camera combination and ask yourself ''"what lens do I need on this other format so that after cropping I get the same framing?"''. These tables answer this question.
 
-The 6x10 format is actually 8x10, with lenses that don't quite have the coverage for 8x10 (ultra-ultrawides). It's widely used by Clyde Butcher, so it's included here. For 6x10, 11x14, and 12x20, only lenses known to be used by Clyde Butcher are included.
+The 6x10 format is actually 8x10, with lenses that don't quite have the coverage for 8x10 (ultra-ultrawides). It's widely used by Clyde Butcher, so it's included here. For 6x10 and 12x20, only lenses known to be used by Clyde Butcher are included.
 
 == Focal lens equivalents ==
 
