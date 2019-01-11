@@ -39,7 +39,7 @@ The tilt/shift columns indicate what focal length you need such that when stitch
 
 == How to use these tables ==
 
-First decide what format and what crop you like to shoot already. Go to the corresponding section, then look for the column with the format you are interested in trying next and find the focal length.
+First decide what format and what crop you like to shoot. Go to the corresponding section, then look for the column with the format you are interested in trying next and find the focal length.
 
 For example, say you like 50mm on full frame, and you like shooting in 4:3 aspect ratio. You are interested in trying out 4x5 large format. First go to "35mm full frame (4:3 crop)" section, then find the row with 50mm and look for the column with "4x5". You will find 198mm, so you need a 200mm lens. 4x5 does not have a 4:3 aspect ratio, so with this 200mm you will have to crop from the top to get the original framing you like.
 
