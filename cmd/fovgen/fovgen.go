@@ -39,12 +39,12 @@ func (s sensor) AspectRatio() float64 {
 var (
 	sensorAPSC     = sensor{25.1, 16.7, "APS-C"}
 	sensorFF       = sensor{36, 24, "35mm"}
-	sensorMF4433   = sensor{43.8, 32.8, "Fuji GFX/Pentax 645"}
+	sensorMF4433   = sensor{43.8, 32.8, "Fuji GFX"} // also Pentax 645
 	sensorMF4937   = sensor{49.1, 36.8, "HxD-39/50"}
 	sensorMF5440   = sensor{53.7, 40.2, "HxD-60/100"}
 	sensorMF4433TS = sensor{43.8 / 1.5, 32.8 / 1.5, "Fuji GFX (HTS)"}
-	sensorMF4937TS = sensor{49.1 / 1.5, 36.8 / 1.5, "HxD-39/50(HTS)"}
-	sensorMF5440TS = sensor{53.7 / 1.5, 40.2 / 1.5, "HxD-60/100(HTS)"}
+	sensorMF4937TS = sensor{49.1 / 1.5, 36.8 / 1.5, "HxD-39/50 (HTS)"}
+	sensorMF5440TS = sensor{53.7 / 1.5, 40.2 / 1.5, "HxD-60/100 (HTS)"}
 	sensorLF45     = sensor{127, 102, "4x5"}
 	sensorLF57     = sensor{177.8, 127, "5x7"}
 	sensorLF617    = sensor{170, 60, "6x17"}
@@ -54,7 +54,7 @@ var (
 	sensorLF1220   = sensor{508, 304, "12x20"}
 )
 
-// Sensors are table columns.
+// sensors are table columns.
 var sensors = []sensor{
 	sensorAPSC,
 	sensorFF,
@@ -71,6 +71,27 @@ var sensors = []sensor{
 	sensorLF810,
 	sensorLF1114,
 	sensorLF1220,
+}
+
+type tiltShift struct {
+	diameter float64
+	tc       float64
+	name     string
+}
+
+func (l tiltShift) String() string {
+	return l.name
+}
+
+var (
+	shiftCanon = tiltShift{67, 1.0, "Canon TS (12mm)"}
+	shiftHC    = tiltShift{87.8, 1.5, "HTS (18mm)"}
+)
+
+// tsLenses are also table columns.
+var tsLenses = []tiltShift{
+	shiftCanon,
+	shiftHC,
 }
 
 type Lens struct {
@@ -298,6 +319,10 @@ func fov(ssize, focal float64) float64 {
 	return 2 * math.Atan(ssize/(2*focal)) * 180 / math.Pi
 }
 
+func focal(R, aspect, crop, vfov float64) float64 {
+	return (R * math.Sqrt(1.0/(aspect*aspect+1))) / (2 * crop * math.Tan(math.Pi*vfov/360.0))
+}
+
 type lensInfo struct {
 	Lens
 	HFoV float64
@@ -305,6 +330,11 @@ type lensInfo struct {
 	EqW  map[sensor]float64
 	EqH  map[sensor]float64
 	EqV  map[sensor]float64
+	EqTS map[tiltShift]float64
+}
+
+func (li *lensInfo) AspectRatio() float64 {
+	return li.HFoV / li.VFoV
 }
 
 func equivalentW(l Lens, s sensor, starg sensor) float64 {
@@ -330,10 +360,11 @@ type cameraInfo struct {
 type tables struct {
 	CameraInfo []cameraInfo
 	Sensors    []sensor
+	TiltShifts []tiltShift
 }
 
 func main() {
-	tbl := tables{Sensors: sensors}
+	tbl := tables{Sensors: sensors, TiltShifts: tsLenses}
 	for _, c := range cameras {
 		ci := cameraInfo{c, nil}
 		lensInfos := []lensInfo{}
@@ -349,6 +380,10 @@ func main() {
 				li.EqW[m] = equivalentW(lens, c.sensor, m)
 				li.EqH[m] = equivalentH(lens, c.sensor, m)
 				li.EqV[m] = equivalentV(lens, c.sensor, m)
+			}
+			li.EqTS = make(map[tiltShift]float64)
+			for _, ts := range tsLenses {
+				li.EqTS[ts] = focal(ts.diameter, li.AspectRatio(), ts.tc, li.VFoV)
 			}
 
 			lensInfos = append(lensInfos, li)

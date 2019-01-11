@@ -35,9 +35,12 @@ Many equivalency tables take into account the diagonal field of view, but I thin
 
 The 6x10 format is actually 8x10, with lenses that don't quite have the coverage for 8x10 (ultra-ultrawides). It's widely used by Clyde Butcher, so it's included here. For 6x10 and 12x20, only lenses known to be used by Clyde Butcher are included.
 
+The tilt/shift columns indicate what focal length you need such that with stitching you could get the original framing.
+
 == Focal lens equivalents ==
 
 {{$sensors := .Sensors}}
+{{$tslenses := .TiltShifts}}
 
 {{range .CameraInfo}}
 === {{.Name}} ===
@@ -51,6 +54,9 @@ The 6x10 format is actually 8x10, with lenses that don't quite have the coverage
 {{- range $sensors}}
 |{{.}}
 {{- end}}
+{{- range $tslenses}}
+|{{.}}
+{{- end}}
 {{- range .Lenses }}
 |-
 |{{.Lens}}
@@ -58,6 +64,9 @@ The 6x10 format is actually 8x10, with lenses that don't quite have the coverage
 |{{printf "%.1f°" .VFoV}} {{$li := .}}
 {{- range $s := $sensors}}
 |{{index $li.EqW $s | printf "%.0f"}}
+{{- end}}
+{{- range $ts := $tslenses}}
+|{{index $li.EqTS $ts | printf "%.0f"}}
 {{- end}}
 {{- end}}
 |}
