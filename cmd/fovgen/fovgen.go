@@ -207,6 +207,8 @@ var lensesLF57 = []Lens{
 }
 
 var lensesLF617 = []Lens{
+	{focal: 47},
+	{focal: 58},
 	{focal: 72},
 	{focal: 90},
 	{focal: 150},
