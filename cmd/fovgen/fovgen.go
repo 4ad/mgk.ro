@@ -54,6 +54,7 @@ var (
 	sensorLF1220   = sensor{508, 304, "12x20"}
 )
 
+// Sensors are table columns.
 var sensors = []sensor{
 	sensorAPSC,
 	sensorFF,
@@ -272,6 +273,7 @@ var (
 	cameraLF1220       = camera{sensorLF1220, &lensesLF1220, "Large format (12x20)"}
 )
 
+// Cameras are wiki sections.
 var cameras = []camera{
 	cameraAPSC,
 	cameraFF,
