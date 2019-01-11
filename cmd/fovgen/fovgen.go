@@ -196,6 +196,16 @@ var lensesLF45 = []Lens{
 	{focal: 300},
 }
 
+var lensesLF57 = []Lens{
+	{focal: 72},
+	{focal: 90},
+	{focal: 150},
+	{focal: 180},
+	{focal: 210},
+	{focal: 300},
+	{focal: 450},
+}
+
 var lensesLF617 = []Lens{
 	{focal: 72},
 	{focal: 90},
@@ -246,6 +256,7 @@ var (
 	cameraHasselblad60 = camera{sensorMF5440, &lensesHasselblad, "Hasselblad H5D-60"}
 	cameraHasselblad50 = camera{sensorMF4937, &lensesHasselblad, "Hasselblad H5D-50"}
 	cameraLF45         = camera{sensorLF45, &lensesLF45, "Large format (4x5)"}
+	cameraLF57         = camera{sensorLF57, &lensesLF57, "Large format (5x7)"}
 	cameraLF617        = camera{sensorLF617, &lensesLF617, "Large format (6x17)"}
 	cameraLF610        = camera{sensorLF610, &lensesLF610, "Large format (6x10)"}
 	cameraLF810        = camera{sensorLF810, &lensesLF810, "Large format (8x10)"}
@@ -261,6 +272,7 @@ var cameras = []camera{
 	cameraHasselblad50,
 	cameraHasselblad60,
 	cameraLF45,
+	cameraLF57,
 	cameraLF617,
 	cameraLF610,
 	cameraLF810,
