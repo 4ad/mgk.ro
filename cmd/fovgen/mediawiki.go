@@ -25,11 +25,15 @@ const wikiPage = `
 
 The tables below lists the focal length equivalents between different formats.
 
-The wide tables are keeping track of aspect ratios, such that every format can fit into any target format. In other words the equivalent format is strictly wider, so from the target format you might need to crop to get the original framing.
+The wide tables are keeping track of aspect ratios, such that every format can fit into any target format. In other words the equivalent format is strictly wider, so from the target format you might need to crop to get the original framing. This is the reason why these numbers are different than other numbers usually circulated online. For example, a 300mm lens on 8x10 is a normal lens, and "feels" (more or less) like a 50mm or a 45mm lens on 35mm (full frame). However, you need a 35mm lens on full frame that you will then crop to a 5:4 ratio to get the same framing as the 300mm lens on large format.
 
 The horizontal tables only take into account the horizontal field of view.
 
 The vertical tables only take into account the vertical field of view.
+
+Many equivalency tables take into account the diagonal field of view, but I think that's a pointless comparison. You usually have some lens/camera combination and ask yourself ''"what lens do I need on this other format so that after cropping I get the same framing?"''. These tables answer this question.
+
+The 6x10 format is actually 8x10, with lenses that don't quite have the coverage for 8x10 (ultra-ultrawides). It's widely used by Clyde Butcher, so it's included here. For 6x10, 11x14, and 12x20, only lenses known to be used by Clyde Butcher are included.
 
 == Focal lens equivalents ==
 
