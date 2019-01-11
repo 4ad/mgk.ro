@@ -275,15 +275,15 @@ var (
 
 // Cameras are wiki sections.
 var cameras = []camera{
-	cameraAPSC,
 	cameraFF,
+	cameraAPSC,
 	cameraGFX,
 	cameraPentax,
 	cameraHasselblad50,
 	cameraHasselblad60,
+	cameraLF617,
 	cameraLF45,
 	cameraLF57,
-	cameraLF617,
 	cameraLF610,
 	cameraLF810,
 	cameraLF1114,
