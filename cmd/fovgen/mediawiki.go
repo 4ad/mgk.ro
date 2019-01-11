@@ -62,9 +62,9 @@ Say you like shooting 90mm on 6x10, and want to get the same framing via stitchi
 {| class="wikitable"
 |+ {{.Name}} (wide)
 |-
-|Focal legth
-|Horizontal FOV
-|Vertical FOV
+|Focal length
+|Horiz FOV
+|Vert FOV
 {{- range $sensors}}
 |{{.}}
 {{- end}}
@@ -88,9 +88,9 @@ Say you like shooting 90mm on 6x10, and want to get the same framing via stitchi
 {| class="wikitable"
 |+ {{.Name}} (horizontal)
 |-
-|Focal legth
-|Horizontal FOV
-|Vertical FOV
+|Focal length
+|Horiz FOV
+|Vert FOV
 {{- range $sensors}}
 |{{.}}
 {{- end}}
@@ -108,9 +108,9 @@ Say you like shooting 90mm on 6x10, and want to get the same framing via stitchi
 {| class="wikitable"
 |+ {{.Name}} (vertical)
 |-
-|Focal legth
-|Horizontal FOV
-|Vertical FOV
+|Focal length
+|Horiz FOV
+|Vert FOV
 {{- range $sensors}}
 |{{.}}
 {{- end}}

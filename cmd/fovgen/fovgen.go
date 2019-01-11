@@ -95,13 +95,15 @@ func (l tiltShift) String() string {
 }
 
 var (
-	shiftCanon = tiltShift{67, 1.0, "Canon TS (12mm)"}
+	shiftCanon = tiltShift{67, 1.0, "Canon TS (12+mm)"}
+	shiftNikon = tiltShift{62.7, 1.0, "Nikon TS (11mm)"}
 	shiftHC    = tiltShift{87.8, 1.5, "HTS (18mm)"}
 )
 
 // tsLenses are also table columns.
 var tsLenses = []tiltShift{
 	shiftCanon,
+	shiftNikon,
 	shiftHC,
 }
 
@@ -216,7 +218,7 @@ func init() {
 func init() {
 	for _, v := range lensesHasselblad {
 		v1 := v
-		v1.mfg = "Hasselblad"
+		v1.mfg = "HC"
 		lensesGFX = append(lensesGFX, v1)
 	}
 }
