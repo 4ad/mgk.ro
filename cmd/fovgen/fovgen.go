@@ -240,6 +240,8 @@ var lensesLF1114 = []Lens{
 	{focal: 300},
 	{focal: 360},
 	{focal: 480},
+	{focal: 600},
+	{focal: 800},
 }
 
 var lensesLF1220 = []Lens{
