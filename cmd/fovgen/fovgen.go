@@ -48,7 +48,10 @@ var (
 	sensorLF45     = sensor{127, 102, "4x5"}
 	sensorLF57     = sensor{177.8, 127, "5x7"}
 	sensorLF617    = sensor{170, 60, "6x17"}
+	sensorLF610    = sensor{254, 152, "6x10"}
 	sensorLF810    = sensor{254, 203, "8x10"}
+	sensorLF1114   = sensor{355, 279, "11x14"}
+	sensorLF1220   = sensor{508, 304, "12x20"}
 )
 
 var sensors = []sensor{
@@ -63,7 +66,10 @@ var sensors = []sensor{
 	sensorLF45,
 	sensorLF57,
 	sensorLF617,
+	// sensorLF610 is intentionally missing; we only care about conversions *from* 6x10
 	sensorLF810,
+	sensorLF1114,
+	sensorLF1220,
 }
 
 type Lens struct {
@@ -200,6 +206,13 @@ var lensesLF617 = []Lens{
 	{focal: 300},
 }
 
+var lensesLF610 = []Lens{
+	{focal: 72},
+	{focal: 90},
+	{focal: 120},
+	{focal: 150},
+}
+
 var lensesLF810 = []Lens{
 	{focal: 120},
 	{focal: 150},
@@ -209,6 +222,14 @@ var lensesLF810 = []Lens{
 	{focal: 360},
 	{focal: 450},
 	{focal: 600},
+}
+
+var lensesLF1114 = []Lens{
+	{focal: 150},
+}
+
+var lensesLF1220 = []Lens{
+	{focal: 210},
 }
 
 type camera struct {
@@ -226,7 +247,10 @@ var (
 	cameraHasselblad50 = camera{sensorMF4937, &lensesHasselblad, "Hasselblad H5D-50"}
 	cameraLF45         = camera{sensorLF45, &lensesLF45, "Large format (4x5)"}
 	cameraLF617        = camera{sensorLF617, &lensesLF617, "Large format (6x17)"}
+	cameraLF610        = camera{sensorLF610, &lensesLF610, "Large format (6x10)"}
 	cameraLF810        = camera{sensorLF810, &lensesLF810, "Large format (8x10)"}
+	cameraLF1114       = camera{sensorLF1114, &lensesLF1114, "Large format (11x14)"}
+	cameraLF1220       = camera{sensorLF1220, &lensesLF1220, "Large format (12x20)"}
 )
 
 var cameras = []camera{
@@ -238,7 +262,10 @@ var cameras = []camera{
 	cameraHasselblad60,
 	cameraLF45,
 	cameraLF617,
+	cameraLF610,
 	cameraLF810,
+	cameraLF1114,
+	cameraLF1220,
 }
 
 func fov(ssize, focal float64) float64 {
