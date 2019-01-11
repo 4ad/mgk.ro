@@ -99,6 +99,8 @@ func (l Lens) Focal() float64 {
 }
 
 var lensesAPSC = []Lens{
+	{focal: 8},
+	{focal: 9},
 	{focal: 10},
 	{focal: 14},
 	{focal: 16},
@@ -114,6 +116,8 @@ var lensesAPSC = []Lens{
 }
 
 var lensesFF = []Lens{
+	{focal: 11},
+	{focal: 12},
 	{focal: 14},
 	{focal: 16},
 	{focal: 17},
