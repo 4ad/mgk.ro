@@ -52,7 +52,10 @@ func main() {
 	}
 
 	shell := exec.Command(os.Getenv("SHELL"))
-	shell.Env = append(os.Environ(), fmt.Sprintf("DEVDRAW_SERVER=%s", *addr))
+	shell.Env = append(os.Environ(),
+		fmt.Sprintf("DEVDRAW_SERVER=%s", *addr),
+		"DEVDRAW=devdraw-proxy",
+	)
 	shell.Stdin = os.Stdin
 	shell.Stdout = os.Stdout
 	shell.Stderr = os.Stderr
