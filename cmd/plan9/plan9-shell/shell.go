@@ -14,10 +14,12 @@
 
 /*
 plan9-shell: Unix shell wrapper
-	plan9-shell -addr addr
+	plan9-shell -addr addr [-c cmd]
 
 This tool wraps the user's SHELL and sets some variables useful to
-plan9port programs. It will set DEVDRAW_SERVER=addr, and DEVDRAW=devdraw-proxy.
+plan9port programs. It will set DEVDRAW_SERVER=addr, and
+DEVDRAW=devdraw-proxy. If -c is present, rather than start an
+interactive shell, it will pass cmd to the shell to execute.
 */
 package main
 
@@ -32,8 +34,9 @@ import (
 )
 
 var addr = flag.String("addr", "", "network address of the drawterm server")
+var cmd = flag.String("c", "", "shell command to execute")
 
-var usageString = `usage: plan9-shell -addr add
+var usageString = `usage: plan9-shell -addr addr [-c cmd]
 Options:
 `
 
@@ -56,6 +59,9 @@ func main() {
 		fmt.Sprintf("DEVDRAW_SERVER=%s", *addr),
 		"DEVDRAW=devdraw-proxy",
 	)
+	if *cmd != "" {
+		shell.Args = append(shell.Args, "-c", *cmd)
+	}
 	shell.Stdin = os.Stdin
 	shell.Stdout = os.Stdout
 	shell.Stderr = os.Stderr
