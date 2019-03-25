@@ -33,6 +33,7 @@ import (
 	"os"
 	"os/exec"
 
+	"mgk.ro/cmd/net/netutil"
 	_ "mgk.ro/log"
 )
 
@@ -56,6 +57,7 @@ func main() {
 	if *addr == "" {
 		usage()
 	}
+	defer cleanup(*addr)
 
 	shell := exec.Command(os.Getenv("SHELL"))
 	shell.Env = append(os.Environ(),
@@ -71,4 +73,15 @@ func main() {
 	if err := shell.Run(); err != nil {
 		log.Fatal(err)
 	}
+}
+
+// Cleanup attempts to remove the unix domain socket left over by
+// ssh(1). It's a best effort function, it doesn't complain about
+// encountered errors because it's too late to do anything about them.
+func cleanup(s string) {
+	net, _, _ := netutil.SplitDialString(s)
+	if net != "unix" { // only attempt to remove unix domain sockets
+		return
+	}
+	os.Remove(s)
 }
