@@ -71,6 +71,13 @@ func main() {
 	shell.Stdout = os.Stdout
 	shell.Stderr = os.Stderr
 	if err := shell.Run(); err != nil {
+		// If the process starts, but returns an error, propagate
+		// it further without logging.
+		if err, ok := err.(*exec.ExitError); ok {
+			// By exiting with the error code from the shell,
+			// we pass it further to our caller (usually ssh(1)).
+			os.Exit(err.ProcessState.ExitCode())
+		}
 		log.Fatal(err)
 	}
 }
