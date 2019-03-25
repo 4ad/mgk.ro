@@ -64,6 +64,7 @@ func devdraw(conn net.Conn) {
 	if err != nil {
 		panic(err)
 	}
+	conn.Close()
 }
 
 func ssh(args []string, command string, unix string) {
