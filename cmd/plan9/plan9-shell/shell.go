@@ -90,9 +90,9 @@ func main() {
 // ssh(1). It's a best effort function, it doesn't complain about
 // encountered errors because it's too late to do anything about them.
 func cleanup(s string) {
-	net, _, _ := netutil.SplitDialString(s)
+	net, host, _ := netutil.SplitDialString(s)
 	if net != "unix" { // only attempt to remove unix domain sockets
 		return
 	}
-	os.Remove(s)
+	os.Remove(host)
 }
