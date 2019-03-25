@@ -32,6 +32,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 
 	"mgk.ro/cmd/net/netutil"
 	_ "mgk.ro/log"
@@ -64,7 +65,9 @@ func main() {
 		fmt.Sprintf("DEVDRAW_SERVER=%s", *addr),
 		"DEVDRAW=devdraw-proxy",
 	)
-	if *cmd != "" {
+	if *cmd == "" {
+		shell.Args[0] = "-" + filepath.Base(shell.Args[0])
+	} else {
 		shell.Args = append(shell.Args, "-c", *cmd)
 	}
 	shell.Stdin = os.Stdin
