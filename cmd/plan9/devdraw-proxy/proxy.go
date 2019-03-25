@@ -14,6 +14,7 @@
 
 /*
 devdraw-proxy: fake devdraw
+	DEVDRAW_SERVER=net!addr DEVDRAW=devdraw-proxy cmd
 
 This tool masquarades as devdraw for plan9port binaries when
 DEVDRAW=devdraw-proxy. It relays the protocol to the devdraw server
