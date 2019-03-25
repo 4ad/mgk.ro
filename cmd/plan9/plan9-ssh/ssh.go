@@ -15,30 +15,24 @@
 package main
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 
 	_ "mgk.ro/log"
 )
 
 func main() {
-	tmp, err := ioutil.TempFile("", "")
-	if err != nil {
-		log.Fatal(err)
-	}
-	unix := tmp.Name()
-	unix = filepath.Join("/tmp", filepath.Base(unix))
-	os.Remove(tmp.Name())
-	go serve(unix)
+	local := tmpfile()
+	go serve(local)
 	network, addr := cmdsplit(os.Args[1:])
-	ssh(network, addr, unix)
-	os.Remove(unix)
+	ssh(network, addr, local, tmpfile()) // different filename, so ssh localhost works.
+	os.Remove(local)
 }
 
 func serve(name string) {
@@ -67,13 +61,14 @@ func devdraw(conn net.Conn) {
 	conn.Close()
 }
 
-func ssh(args []string, command string, unix string) {
+func ssh(args []string, command string, local, remote string) {
 	cmd := exec.Command("ssh", args...)
-	cmd.Args = append(cmd.Args, "-M", "-S", "none", "-R",
-		fmt.Sprintf("%s:%s", unix, unix),
+	cmd.Args = append(cmd.Args,
+		"-R", fmt.Sprintf("%s:%s", remote, local),
+		"-o", "ExitOnForwardFailure=yes",
+		"plan9-shell",
+		"-addr", fmt.Sprintf("unix!%s", remote),
 	)
-	cmd.Args = append(cmd.Args, "plan9-shell")
-	cmd.Args = append(cmd.Args, "-addr", fmt.Sprintf("unix!%s", unix))
 	if command != "" {
 		cmd.Args = append(cmd.Args, "-c", command)
 	} else {
@@ -83,7 +78,6 @@ func ssh(args []string, command string, unix string) {
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-
 	if err := cmd.Run(); err != nil {
 		log.Fatal(err)
 	}
@@ -107,4 +101,13 @@ func cmdsplit(args []string) (params []string, cmd string) {
 		return []string{args[0]}, strings.Join(args[1:], " ")
 	}
 	return args, ""
+}
+
+func tmpfile() string {
+	b := make([]byte, 16)
+	_, err := rand.Read(b)
+	if err != nil {
+		log.Fatal("can't generate random filename")
+	}
+	return "/tmp/devdraw-" + hex.EncodeToString(b)
 }
