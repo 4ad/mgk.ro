@@ -12,6 +12,19 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+/*
+plan9-ssh: ssh(1) wrapper and devdraw server
+	plan9-ssh [ssh-options...] [user@]host [cmd [args...]]
+	plan9-ssh [user@]host acme
+
+This tool is a drop-in ssh(1) replacement that is also a local
+devdraw server. It exposes the devdraw server to remote clients by
+starting plan9-shell on the remote end and forwarding devdraw
+connections to itself.
+
+This program wraps ssh(1), so $HOME/.ssh/config is honored, as well
+as any extra ssh(1) options passed on the command line.
+*/
 package main
 
 import (
