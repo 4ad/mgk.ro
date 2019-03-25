@@ -19,7 +19,10 @@ plan9-shell: Unix shell wrapper
 This tool wraps the user's SHELL and sets some variables useful to
 plan9port programs. It will set DEVDRAW_SERVER=addr, and
 DEVDRAW=devdraw-proxy. If -c is present, rather than start an
-interactive shell, it will pass cmd to the shell to execute.
+interactive shell, it will pass cmd to the user's shell to execute.
+
+This program is not intended to be called by the user, but by
+plan9-ssh.
 */
 package main
 
