@@ -29,10 +29,9 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"net"
 	"os"
-	"strings"
 
+	"mgk.ro/cmd/net/netutil"
 	_ "mgk.ro/log"
 )
 
@@ -47,7 +46,7 @@ func main() {
 	flag.Usage = usage
 	flag.Parse()
 
-	conn, err := net.Dial(dialstring(os.Getenv("DEVDRAW_SERVER")))
+	conn, err := netutil.Dial(os.Getenv("DEVDRAW_SERVER"))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -60,12 +59,4 @@ func proxy(dst io.Writer, src io.Reader) {
 	if err != nil {
 		log.Fatal(err)
 	}
-}
-
-func dialstring(s string) (net, addr string) {
-	ss := strings.Split(s, "!")
-	if len(ss) != 2 {
-		log.Fatal("DEVDRAW_SERVER invalid or unset")
-	}
-	return ss[0], ss[1]
 }
