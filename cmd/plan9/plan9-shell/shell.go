@@ -74,6 +74,7 @@ func main() {
 	shell.Stdout = os.Stdout
 	shell.Stderr = os.Stderr
 	if err := shell.Run(); err != nil {
+		cleanup(*addr)
 		// If the process starts, but returns an error, propagate
 		// it further without logging.
 		if err, ok := err.(*exec.ExitError); ok {
