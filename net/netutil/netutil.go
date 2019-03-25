@@ -15,7 +15,7 @@
 /*
 Package netutil implements some network I/O utility functions.
 */
-package netutil // import "mgk.ro/cmd/net/netutil"
+package netutil // import "mgk.ro/net/netutil"
 
 import (
 	"errors"

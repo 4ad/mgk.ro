@@ -32,7 +32,7 @@ import (
 	"log"
 	"os"
 
-	"mgk.ro/cmd/net/netutil"
+	"mgk.ro/net/netutil"
 	_ "mgk.ro/log"
 )
 

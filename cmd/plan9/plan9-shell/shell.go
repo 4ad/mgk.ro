@@ -34,7 +34,7 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"mgk.ro/cmd/net/netutil"
+	"mgk.ro/net/netutil"
 	_ "mgk.ro/log"
 )
 
