@@ -63,7 +63,11 @@ func serve(name string) {
 }
 
 func devdraw(conn net.Conn) {
-	cmd := exec.Command("devdraw")
+	exe := os.Getenv("DEVDRAW")
+	if exe == "" {
+		exe = "devdraw"
+	}
+	cmd := exec.Command(exe)
 	cmd.Stdin = conn
 	cmd.Stdout = conn
 	cmd.Stderr = os.Stderr
