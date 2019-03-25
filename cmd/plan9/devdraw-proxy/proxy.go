@@ -18,6 +18,9 @@ devdraw-proxy: fake devdraw
 This tool masquarades as devdraw for plan9port binaries when
 DEVDRAW=devdraw-proxy. It relays the protocol to the devdraw server
 specified by DEVDRAW_SERVER.
+
+This program is not intended to be called directly by the user, but
+by plan9port graphical programs.
 */
 package main
 
