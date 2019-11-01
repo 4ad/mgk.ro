@@ -21,6 +21,8 @@ import (
 var wiki = template.Must(template.New("wiki").Parse(wikiPage))
 
 const wikiPage = `
+[[Category:Photography]]
+
 == Introduction ==
 
 The tables below lists the focal length equivalents between different formats.
