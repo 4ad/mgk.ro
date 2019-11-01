@@ -225,14 +225,20 @@ func init() {
 
 var lensesLF45 = []Lens{
 	{focal: 47},
+	{focal: 58},
 	{focal: 65},
 	{focal: 72},
+	{focal: 75},
+	{focal: 80},
 	{focal: 90},
+	{focal: 110},
+	{focal: 120},
 	{focal: 150},
 	{focal: 180},
 	{focal: 210},
 	{focal: 240},
 	{focal: 300},
+	{focal: 400},
 }
 
 var lensesLF57 = []Lens{
