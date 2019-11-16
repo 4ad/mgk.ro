@@ -70,15 +70,13 @@ var sensors = []sensor{
 	sensorFF,
 	// sensorFF43
 	// sensorFF54
-	sensorMF4433,
+	sensorMF4433, sensorMF4433TS,
 	// sensorMF4133
 	// sensorMF4937,
 	// sensorMF4637
-	sensorMF5440,
+	sensorMF5440, sensorMF5440TS,
 	// sensorMF5040
-	sensorMF4433TS,
 	// sensorMF4937TS,
-	sensorMF5440TS,
 	sensorMF5641,
 	sensorMF5656,
 	sensorMF6756,
