@@ -258,6 +258,15 @@ var lensesMF6756 = []Lens{
 	{focal: 210},
 }
 
+var lensesMF8456 = []Lens{
+	{focal: 50},
+	{focal: 65},
+	{focal: 80},
+	{focal: 100},
+	{focal: 150},
+	{focal: 180},
+}
+
 var lensesLF45 = []Lens{
 	{focal: 47},
 	{focal: 58},
@@ -354,6 +363,7 @@ var (
 	cameraMam645   = camera{sensorMF5641, &lensesMF5641, "Mamiya 645"}
 	cameraHass66   = camera{sensorMF5656, &lensesMF6756, "Hasselblad 500C"}
 	cameraMam67    = camera{sensorMF6756, &lensesMF6756, "Mamiya RZ67"}
+	cameraFuji690  = camera{sensorMF8456, &lensesMF8456, "Fujica G690"}
 	cameraLF45     = camera{sensorLF45, &lensesLF45, "Large format (4x5)"}
 	cameraLF57     = camera{sensorLF57, &lensesLF57, "Large format (5x7)"}
 	cameraLF617    = camera{sensorLF617, &lensesLF617, "Large format (6x17)"}
@@ -378,6 +388,7 @@ var cameras = []camera{
 	cameraMam645,
 	cameraHass66,
 	cameraMam67,
+	cameraFuji690,
 	cameraLF617,
 	cameraLF45,
 	cameraLF57,
