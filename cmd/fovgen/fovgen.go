@@ -72,12 +72,12 @@ var sensors = []sensor{
 	// sensorFF54
 	sensorMF4433,
 	// sensorMF4133
-	sensorMF4937,
+	// sensorMF4937,
 	// sensorMF4637
 	sensorMF5440,
 	// sensorMF5040
 	sensorMF4433TS,
-	sensorMF4937TS,
+	// sensorMF4937TS,
 	sensorMF5440TS,
 	sensorMF5641,
 	sensorMF5656,
@@ -88,8 +88,8 @@ var sensors = []sensor{
 	sensorLF617,
 	// sensorLF610
 	sensorLF810,
-	sensorLF1114,
-	sensorLF1220,
+	// sensorLF1114,
+	// sensorLF1220,
 }
 
 type tiltShift struct {
