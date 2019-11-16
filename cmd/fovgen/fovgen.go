@@ -41,8 +41,8 @@ var (
 	sensorFF       = sensor{36, 24, "35mm"}
 	sensorFF43     = sensor{32, 24, "35mm (4:3 crop)"}
 	sensorFF54     = sensor{30, 24, "35mm (5:4 crop)"}
-	sensorMF4433   = sensor{43.8, 32.8, "Fuji GFX"}          // also Pentax 645
-	sensorMF4133   = sensor{41, 32.8, "Fuji GFX (5:4 crop)"} // also Pentax 645
+	sensorMF4433   = sensor{43.8, 32.8, "Fuji GFX"}          // also Pentax 645Z
+	sensorMF4133   = sensor{41, 32.8, "Fuji GFX (5:4 crop)"} // also Pentax 645Z
 	sensorMF4937   = sensor{49.1, 36.8, "HxD-39/50"}
 	sensorMF4637   = sensor{46, 36.8, "HxD-39/50 (5:4 crop)"}
 	sensorMF5440   = sensor{53.7, 40.2, "HxD-60/100"}
@@ -50,6 +50,10 @@ var (
 	sensorMF4433TS = sensor{43.8 / 1.5, 32.8 / 1.5, "Fuji GFX (HTS)"}
 	sensorMF4937TS = sensor{49.1 / 1.5, 36.8 / 1.5, "HxD-39/50 (HTS)"}
 	sensorMF5440TS = sensor{53.7 / 1.5, 40.2 / 1.5, "HxD-60/100 (HTS)"}
+	sensorMF5641   = sensor{56, 41.5, "645 MF"}
+	sensorMF5656   = sensor{56, 56, "6x6 MF"}
+	sensorMF6756   = sensor{67, 56, "6x7 MF"}
+	sensorMF8456   = sensor{84, 56, "6x9 MF"}
 	sensorLF45     = sensor{127, 102, "4x5"}
 	sensorLF57     = sensor{177.8, 127, "5x7"}
 	sensorLF617    = sensor{170, 60, "6x17"}
@@ -75,6 +79,10 @@ var sensors = []sensor{
 	sensorMF4433TS,
 	sensorMF4937TS,
 	sensorMF5440TS,
+	sensorMF5641,
+	sensorMF5656,
+	sensorMF6756,
+	// sensorMF6756
 	sensorLF45,
 	sensorLF57,
 	sensorLF617,
@@ -163,8 +171,10 @@ var lensesFF = []Lens{
 	{focal: 45},
 	{focal: 50},
 	{focal: 85},
+	{focal: 90},
 	{focal: 105},
 	{focal: 120},
+	{focal: 135},
 	{focal: 200},
 }
 
@@ -221,6 +231,31 @@ func init() {
 		v1.mfg = "HC"
 		lensesGFX = append(lensesGFX, v1)
 	}
+}
+
+var lensesMF5641 = []Lens{
+	{focal: 35},
+	{focal: 45},
+	{focal: 55},
+	{focal: 80},
+	{focal: 110},
+	{focal: 120},
+	{focal: 150},
+	{focal: 200},
+}
+
+var lensesMF5656 = []Lens{
+	{focal: 40},
+	{focal: 50},
+	{focal: 65},
+	{focal: 75},
+	{focal: 80},
+	{focal: 90},
+	{focal: 110},
+	{focal: 127},
+	{focal: 150},
+	{focal: 180},
+	{focal: 210},
 }
 
 var lensesLF45 = []Lens{
@@ -310,8 +345,8 @@ var (
 	cameraFF54     = camera{sensorFF54, &lensesFF, "35mm full frame (5:4 crop)"}
 	cameraGFX      = camera{sensorMF4433, &lensesGFX, "Fuji GFX"}
 	cameraGFX54    = camera{sensorMF4133, &lensesGFX, "Fuji GFX (5:4 crop)"}
-	cameraPentax   = camera{sensorMF4433, &lensesPentax, "Pentax 645"}
-	cameraPentax54 = camera{sensorMF4133, &lensesPentax, "Pentax 645 (5:4 crop)"}
+	cameraPentax   = camera{sensorMF4433, &lensesPentax, "Pentax 645Z"}
+	cameraPentax54 = camera{sensorMF4133, &lensesPentax, "Pentax 645Z (5:4 crop)"}
 	cameraHass60   = camera{sensorMF5440, &lensesHasselblad, "Hasselblad H5D-60"}
 	cameraHass6054 = camera{sensorMF5040, &lensesHasselblad, "Hasselblad H5D-60 (5:4 crop)"}
 	cameraHass50   = camera{sensorMF4937, &lensesHasselblad, "Hasselblad H5D-50"}
