@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"sort"
 )
 
 type sensor struct {
@@ -41,6 +42,7 @@ var (
 	sensorFF       = sensor{36, 24, "35mm"}
 	sensorFF43     = sensor{32, 24, "35mm (4:3 crop)"}
 	sensorFF54     = sensor{30, 24, "35mm (5:4 crop)"}
+	sensorFF5824   = sensor{58, 24, "panoramic 35mm (2.4:1)"}
 	sensorMF4433   = sensor{43.8, 32.8, "Fuji GFX"}          // also Pentax 645Z
 	sensorMF4133   = sensor{41, 32.8, "Fuji GFX (5:4 crop)"} // also Pentax 645Z
 	sensorMF4937   = sensor{49.1, 36.8, "HxD-39/50"}
@@ -70,6 +72,7 @@ var sensors = []sensor{
 	sensorFF,
 	// sensorFF43
 	// sensorFF54
+	// sensorFF5824
 	sensorMF4433, sensorMF4433TS,
 	// sensorMF4133
 	// sensorMF4937,
@@ -179,6 +182,17 @@ var lensesFF = []Lens{
 	{focal: 200},
 }
 
+var lensesPress = []Lens{
+	{focal: 50},
+	{focal: 65},
+	{focal: 75},
+	{focal: 90},
+	{focal: 100},
+	{focal: 127},
+	{focal: 150},
+	{focal: 250},
+}
+
 var lensesGFX = []Lens{
 	{focal: 23},
 	{focal: 32},
@@ -268,6 +282,21 @@ var lensesMF8456 = []Lens{
 	{focal: 180},
 }
 
+func init() {
+	l := make(map[Lens]bool)
+	for _, v := range lensesMF8456 {
+		l[v] = true
+	}
+	for _, v := range lensesPress {
+		l[v] = true
+	}
+	lensesMF8456 = make([]Lens, 0, len(l))
+	for k := range l {
+		lensesMF8456 = append(lensesMF8456, k)
+	}
+	sort.SliceStable(lensesMF8456, func(i, j int) bool { return lensesMF8456[i].focal < lensesMF8456[j].focal })
+}
+
 var lensesLF45 = []Lens{
 	{focal: 47},
 	{focal: 58},
@@ -353,6 +382,7 @@ var (
 	cameraFF       = camera{sensorFF, &lensesFF, "35mm full frame"}
 	cameraFF43     = camera{sensorFF43, &lensesFF, "35mm full frame (4:3 crop)"}
 	cameraFF54     = camera{sensorFF54, &lensesFF, "35mm full frame (5:4 crop)"}
+	cameraBranco   = camera{sensorFF5824, &lensesPress, "CAMERADACTYL Brancopan"}
 	cameraGFX      = camera{sensorMF4433, &lensesGFX, "Fuji GFX"}
 	cameraGFX54    = camera{sensorMF4133, &lensesGFX, "Fuji GFX (5:4 crop)"}
 	cameraPentax   = camera{sensorMF4433, &lensesPentax, "Pentax 645Z"}
@@ -379,6 +409,7 @@ var cameras = []camera{
 	cameraFF,
 	cameraFF43,
 	cameraFF54,
+	cameraBranco,
 	cameraAPSC,
 	cameraGFX,
 	cameraPentax,
