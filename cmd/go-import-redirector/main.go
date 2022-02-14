@@ -60,10 +60,14 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path"
 	"strings"
-
-	_ "mgk.ro/log"
 )
+
+func init() {
+	log.SetFlags(0)
+	log.SetPrefix(path.Base(os.Args[0] + ": "))
+}
 
 var (
 	addr     = flag.String("addr", ":http", "serve http on `address`")
