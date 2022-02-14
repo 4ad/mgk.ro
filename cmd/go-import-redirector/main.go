@@ -1,9 +1,3 @@
-// Copyright 2015 The Go Authors https://golang.org/AUTHORS
-// Copyright 2018 Aram Hăvărneanu <aram@mgk.ro>
-// All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 // Go-import-redirector is an HTTP server for a custom Go import domain.
 // It responds to requests in a given import path root with a meta tag
 // specifying the source repository for the ``go get'' command and an
