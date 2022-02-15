@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 )
 
 var (
@@ -64,7 +65,7 @@ func outfile(pre, exe string) *os.File {
 
 func pattern(pre, exe string) string {
 	if pre == "" {
-		return exe + "-*.out"
+		return filepath.Base(exe) + "-*.out"
 	}
 	return pre + "-*.out"
 }
