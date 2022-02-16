@@ -12,6 +12,7 @@ import (
 var (
 	quiet  = flag.Bool("q", false, "be extra quiet")
 	prefix = flag.String("x", "", "use prefix for output file")
+	kill   = flag.Bool("k", false, "reverse kill and tail output")
 )
 
 func usage() {
@@ -33,7 +34,11 @@ func main() {
 		os.Exit(4)
 	}
 	if !*quiet {
-		fmt.Printf("tail -f %s # pid=%d\n", out.Name(), cmd.Process.Pid)
+		if *kill {
+			fmt.Printf("kill %d # tail -f %s\n", cmd.Process.Pid, out.Name())
+		} else {
+			fmt.Printf("tail -f %s # kill %d\n", out.Name(), cmd.Process.Pid)
+		}
 	}
 	if err := cmd.Wait(); err != nil {
 		var exiterr *exec.ExitError
